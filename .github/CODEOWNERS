@@ -11,7 +11,7 @@
 
 /charts/alertmanager/ 
 /charts/dcgm-exporter/ 
-/charts/kube-prometheus-stack/ 
+/charts/kube-prometheus-stack/ @GMartinez-Sisti @QuentinBisson @Xtigyro @andrewgkew @gianrubio @gkarthiks @jkroepke @scottrigby
 /charts/kube-state-metrics/ 
 /charts/prometheus-blackbox-exporter/ 
 /charts/prometheus-node-exporter/ 
