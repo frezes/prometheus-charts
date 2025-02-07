@@ -40,7 +40,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: {{ include "wiztelemetry-monitoring-helper.name" . }}-post-install
-    namespace: {{ template "wiztelemetry-monitoring-helper.namespace" . }}
+    namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
   name: {{ include "wiztelemetry-monitoring-helper.name" . }}-post-install
@@ -73,8 +73,6 @@ spec:
               value: "{{ ternary "true" "" .Values.gpuMonitoringHelper.enabled }}"
             - name: EnabledEtcdMonitoring
               value: "{{ ternary "true" "" .Values.etcdMonitoringHelper.enabled }}"
-            - name: EnabledWhizard
-              value: "{{ ternary "true" "" .Values.whizardHelper.enabled }}"
           {{- with .Values.hook.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
@@ -85,5 +83,4 @@ spec:
             - |
                 kubectl annotate extensions.kubesphere.io whizard-monitoring monitoring.kubesphere.io/enable-gpu-monitoring=$EnabledGPUMonitoring  --overwrite
                 kubectl annotate extensions.kubesphere.io whizard-monitoring monitoring.kubesphere.io/enable-etcd-monitoring=$EnabledEtcdMonitoring --overwrite
-                kubectl annotate extensions.kubesphere.io whizard-monitoring monitoring.kubesphere.io/enable-whizard=$EnabledWhizard --overwrite
 {{ end }}
