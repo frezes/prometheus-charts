@@ -1,4 +1,4 @@
-local whizardTelemetryMixin = import '../components/whizard-telemetry.libsonnet';
+local wiztelemetryMixin = import '../components/wiztelemetry.libsonnet';
 
 (import 'kube-prometheus/platforms/kubeadm.libsonnet')+
 (import 'kube-prometheus/addons/all-namespaces.libsonnet') +
@@ -17,7 +17,7 @@ local whizardTelemetryMixin = import '../components/whizard-telemetry.libsonnet'
     },
   },
   
-  whizardTelemetry: whizardTelemetryMixin(
+  wiztelemetry: wiztelemetryMixin(
     {
       namespace: $.values.common.namespace,
       mixin+: { ruleLabels: $.values.common.ruleLabels },

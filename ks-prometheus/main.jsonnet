@@ -14,7 +14,7 @@ local kp =
     values+:: {
       common+: {
         namespace: 'kubesphere-monitoring-system',
-        platform:  'whizardTelemetry',
+        platform:  'wiztelemetry',
       },
     },
   };
@@ -38,10 +38,10 @@ local kp =
 { ['kubernetes-' + name]: kp.kubernetesControlPlane[name] for name in std.objectFields(kp.kubernetesControlPlane) } +
 { ['node-exporter-' + name]: kp.nodeExporter[name] for name in std.objectFields(kp.nodeExporter) } +
 { ['prometheus-' + name]: kp.prometheus[name] for name in std.objectFields(kp.prometheus) } +
-{ ['kubesphere-' + name]: kp.whizardTelemetry.kubesphere[name] for name in std.objectFields(kp.whizardTelemetry.kubesphere)} +
-{ ['thanos-ruler-' + name]: kp.whizardTelemetry.thanosRuler[name] for name in std.objectFields(kp.whizardTelemetry.thanosRuler)} +
-{ 'etcd-prometheusRule': kp.whizardTelemetry.etcd.prometheusRule } +
-{ 'whizard-telemetry-prometheusRule': kp.whizardTelemetry.prometheusRule}
+{ ['kubesphere-' + name]: kp.wiztelemetry.kubesphere[name] for name in std.objectFields(kp.wiztelemetry.kubesphere)} +
+{ ['thanos-ruler-' + name]: kp.wiztelemetry.thanosRuler[name] for name in std.objectFields(kp.wiztelemetry.thanosRuler)} +
+{ 'etcd-prometheusRule': kp.wiztelemetry.etcd.prometheusRule } +
+{ 'wiztelemetry-prometheusRule': kp.wiztelemetry.prometheusRule}
 // { ['prometheus-adapter-' + name]: kp.prometheusAdapter[name] for name in std.objectFields(kp.prometheusAdapter) }
 */
 
@@ -85,6 +85,6 @@ local prometheusRulesRemoveNullGroup(prometheusRule) = if prometheusRule.kind !=
 // { 'kubernetes-prometheusRule': prometheusRulesRemoveNullGroup(prometheusRulesWithoutAlerting(kp.kubernetesControlPlane.prometheusRule)) } +
 // { 'node-exporter-prometheusRule': prometheusRulesRemoveNullGroup(prometheusRulesWithoutAlerting(kp.nodeExporter.prometheusRule)) } +
 // { 'prometheus-prometheusRule': prometheusRulesRemoveNullGroup(prometheusRulesWithoutAlerting(kp.prometheus.prometheusRule)) }+
-{ 'whizard-telemetry-prometheusRule': prometheusRulesRemoveNullGroup(prometheusRulesWithoutAlerting(kp.whizardTelemetry.prometheusRule)) }
+{ 'wiztelemetry-prometheusRule': prometheusRulesRemoveNullGroup(prometheusRulesWithoutAlerting(kp.wiztelemetry.prometheusRule)) }
 
 

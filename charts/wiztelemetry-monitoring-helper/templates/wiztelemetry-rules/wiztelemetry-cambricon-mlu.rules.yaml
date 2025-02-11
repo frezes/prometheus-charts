@@ -1,0 +1,195 @@
+{{- /*
+Generated from 'wiztelemetry-cambricon-mlu.rules' group from file://../../../ks-prometheus/manifests/wiztelemetry-prometheusRule.yaml
+Do not change in-place! In order to change this file first read following link:
+https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack/hack
+*/ -}}
+{{- $kubeTargetVersion := default .Capabilities.KubeVersion.GitVersion .Values.kubeTargetVersionOverride }}
+{{- if and (semverCompare ">=1.14.0-0" $kubeTargetVersion) (semverCompare "<9.9.9-9" $kubeTargetVersion) .Values.defaultRules.create .Values.defaultRules.rules.gpuDevice.cambriconMLU }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ printf "%s-%s" (include "wiztelemetry-monitoring-helper.fullname" .) "wiztelemetry-cambricon-mlu.rules" | trunc 63 | trimSuffix "-" }}
+  namespace: {{ template "wiztelemetry-monitoring-helper.namespace" . }}
+  labels:
+    app: {{ template "wiztelemetry-monitoring-helper.name" . }}
+{{ include "wiztelemetry-monitoring-helper.labels" . | indent 4 }}
+{{- if .Values.defaultRules.labels }}
+{{ toYaml .Values.defaultRules.labels | indent 4 }}
+{{- end }}
+{{- if .Values.defaultRules.annotations }}
+  annotations:
+{{ toYaml .Values.defaultRules.annotations | indent 4 }}
+{{- end }}
+spec:
+  groups:
+  - name: wiztelemetry-cambricon-mlu.rules
+    rules:
+    - expr: |-
+        sum by ({{ range $.Values.defaultRules.additionalAggregationLabels }}{{ . }},{{ end }}cluster, node, namespace, pod, container) (
+            mlu_utilization{job="mlu-monitoring"} / 100
+          * on ({{ range $.Values.defaultRules.additionalAggregationLabels }}{{ . }},{{ end }}cluster, uuid) group_left (namespace, pod, container, node)
+            mlu_container{job="mlu-monitoring"}
+        )
+      record: node_namespace_pod_container:container_gpu_utilization
+      {{- if or .Values.defaultRules.additionalRuleLabels .Values.defaultRules.additionalRuleGroupLabels.gpuDevice.cambriconMLU }}
+      labels:
+        {{- with .Values.defaultRules.additionalRuleLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.defaultRules.additionalRuleGroupLabels.gpuDevice.cambriconMLU }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+    - expr: |-
+        sum by ({{ range $.Values.defaultRules.additionalAggregationLabels }}{{ . }},{{ end }}cluster, node, namespace, pod, container) (
+            mlu_memory_used{job="mlu-monitoring"}
+          * on ({{ range $.Values.defaultRules.additionalAggregationLabels }}{{ . }},{{ end }}cluster, uuid) group_left (namespace, pod, container, node)
+            mlu_container{job="mlu-monitoring"}
+        )
+      record: node_namespace_pod_container:container_gpu_memory_usage
+      {{- if or .Values.defaultRules.additionalRuleLabels .Values.defaultRules.additionalRuleGroupLabels.gpuDevice.cambriconMLU }}
+      labels:
+        {{- with .Values.defaultRules.additionalRuleLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.defaultRules.additionalRuleGroupLabels.gpuDevice.cambriconMLU }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+    - expr: |-
+        label_replace(
+          label_replace(mlu_temperature{job="mlu-monitoring"}, "device_num", "mlu${1}", "mlu", "(.*)"),
+          "device_name",
+          "$1",
+          "model",
+          "(.*)"
+        )
+      record: node:gpu_device:gpu_temperature
+      {{- if or .Values.defaultRules.additionalRuleLabels .Values.defaultRules.additionalRuleGroupLabels.gpuDevice.cambriconMLU }}
+      labels:
+        {{- with .Values.defaultRules.additionalRuleLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.defaultRules.additionalRuleGroupLabels.gpuDevice.cambriconMLU }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+    - expr: |-
+        label_replace(
+          label_replace(mlu_power_usage{job="mlu-monitoring"}, "device_num", "mlu${1}", "mlu", "(.*)"),
+          "device_name",
+          "$1",
+          "model",
+          "(.*)"
+        )
+      record: node:gpu_device:gpu_power_usage
+      {{- if or .Values.defaultRules.additionalRuleLabels .Values.defaultRules.additionalRuleGroupLabels.gpuDevice.cambriconMLU }}
+      labels:
+        {{- with .Values.defaultRules.additionalRuleLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.defaultRules.additionalRuleGroupLabels.gpuDevice.cambriconMLU }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+    - expr: |-
+        label_replace(
+          label_replace(mlu_memory_used{job="mlu-monitoring"}, "device_num", "mlu${1}", "mlu", "(.*)"),
+          "device_name",
+          "$1",
+          "model",
+          "(.*)"
+        )
+      record: node:gpu_device:gpu_memory_used_bytes
+      {{- if or .Values.defaultRules.additionalRuleLabels .Values.defaultRules.additionalRuleGroupLabels.gpuDevice.cambriconMLU }}
+      labels:
+        {{- with .Values.defaultRules.additionalRuleLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.defaultRules.additionalRuleGroupLabels.gpuDevice.cambriconMLU }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+    - expr: |-
+        label_replace(
+          label_replace(mlu_memory_total{job="mlu-monitoring"}, "device_num", "mlu${1}", "mlu", "(.*)"),
+          "device_name",
+          "$1",
+          "model",
+          "(.*)"
+        )
+      record: node:gpu_device:gpu_memory_total_bytes
+      {{- if or .Values.defaultRules.additionalRuleLabels .Values.defaultRules.additionalRuleGroupLabels.gpuDevice.cambriconMLU }}
+      labels:
+        {{- with .Values.defaultRules.additionalRuleLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.defaultRules.additionalRuleGroupLabels.gpuDevice.cambriconMLU }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+    - expr: |-
+        label_replace(
+          label_replace(mlu_memory_utilization{job="mlu-monitoring"} / 100, "device_num", "mlu${1}", "mlu", "(.*)"),
+          "device_name",
+          "$1",
+          "model",
+          "(.*)"
+        )
+      record: node:gpu_device:gpu_memory_utilization
+      {{- if or .Values.defaultRules.additionalRuleLabels .Values.defaultRules.additionalRuleGroupLabels.gpuDevice.cambriconMLU }}
+      labels:
+        {{- with .Values.defaultRules.additionalRuleLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.defaultRules.additionalRuleGroupLabels.gpuDevice.cambriconMLU }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+    - expr: |-
+        label_replace(
+          label_replace(mlu_utilization{job="mlu-monitoring"} / 100, "device_num", "mlu${1}", "mlu", "(.*)"),
+          "device_name",
+          "$1",
+          "model",
+          "(.*)"
+        )
+      record: node:gpu_device:gpu_utilization
+      {{- if or .Values.defaultRules.additionalRuleLabels .Values.defaultRules.additionalRuleGroupLabels.gpuDevice.cambriconMLU }}
+      labels:
+        {{- with .Values.defaultRules.additionalRuleLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.defaultRules.additionalRuleGroupLabels.gpuDevice.cambriconMLU }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+    - expr: |-
+        sum by ({{ range $.Values.defaultRules.additionalAggregationLabels }}{{ . }},{{ end }}cluster, node) (
+          kube_pod_container_resource_requests{job="kube-state-metrics",resource="cambricon_com_mlu370"}
+        )
+      record: node:node_gpu_allocated_num:sum
+      {{- if or .Values.defaultRules.additionalRuleLabels .Values.defaultRules.additionalRuleGroupLabels.gpuDevice.cambriconMLU }}
+      labels:
+        {{- with .Values.defaultRules.additionalRuleLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.defaultRules.additionalRuleGroupLabels.gpuDevice.cambriconMLU }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+    - expr: |-
+        sum by ({{ range $.Values.defaultRules.additionalAggregationLabels }}{{ . }},{{ end }}cluster, node) (
+            kube_node_status_allocatable{job="kube-state-metrics",resource="cambricon_com_mlu370"}
+        )
+      record: node:node_gpu_num:sum
+      {{- if or .Values.defaultRules.additionalRuleLabels .Values.defaultRules.additionalRuleGroupLabels.gpuDevice.cambriconMLU }}
+      labels:
+        {{- with .Values.defaultRules.additionalRuleLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.defaultRules.additionalRuleGroupLabels.gpuDevice.cambriconMLU }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+{{- end }}

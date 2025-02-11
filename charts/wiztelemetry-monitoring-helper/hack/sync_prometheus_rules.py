@@ -29,11 +29,11 @@ def change_style(style, representer):
 
 refs = {
     # https://github.com/prometheus-operator/kube-prometheus
-    'ref.kube-prometheus': 'b5b59bc0b45508b85647eb7a84b96dc167be15f1',
+    'ref.kube-prometheus': 'e9e35af6cd0c3013397d056779d684a1d0185af8',
     # https://github.com/kubernetes-monitoring/kubernetes-mixin
-    'ref.kubernetes-mixin': 'de834e9a291b49396125768f041e2078763f48b5',
+    'ref.kubernetes-mixin': 'c4893ae331ef1a9e49ca151460a57c5c5e60ebda',
     # https://github.com/etcd-io/etcd
-    'ref.etcd': '1c22e7b36bc5d8543f1646212f2960f9fe503b8c',
+    'ref.etcd': 'c6b9e9e9277121b347f63eb82d28c2c79611557e',
 }
 
 # Source files list
@@ -42,13 +42,20 @@ charts = [
     #     'git': 'https://github.com/prometheus-operator/kube-prometheus.git',
     #     'branch': refs['ref.kube-prometheus'],
     #     'source': 'main.libsonnet',
-    #     'cwd': 'jsonnet/kube-prometheus',
+    #     'cwd': '',
     #     'destination': '../templates/prometheus/rules-1.14',
     #     'min_kubernetes': '1.14.0-0',
     #     'mixin': """
     #     local kp =
-    #       (import 'main.libsonnet') + {
+    #       (import 'jsonnet/kube-prometheus/main.libsonnet') + {
     #         values+:: {
+    #           nodeExporter+: {
+    #             mixin+: {
+    #               _config+: {
+    #                 fsSelector: '$.Values.defaultRules.node.fsSelector',
+    #               },
+    #             },
+    #           },
     #           common+: {
     #             namespace: 'monitoring',
     #           },
@@ -88,7 +95,7 @@ charts = [
     #             'windowsExporterSelector': 'job="windows-exporter"',
     #             'kubeStateMetricsSelector': 'job="kube-state-metrics"',
     #         }};
-
+    # 
     #     kp.prometheusAlerts + kp.prometheusRules
     #     """
     # },
@@ -99,119 +106,95 @@ charts = [
     #     'cwd': 'contrib/mixin',
     #     'destination': '../templates/prometheus/rules-1.14',
     #     'min_kubernetes': '1.14.0-0',
+    #     # Override the default etcd_instance_labels to get proper aggregation for etcd instances in k8s clusters (#2720)
+    #     # see https://github.com/etcd-io/etcd/blob/1c22e7b36bc5d8543f1646212f2960f9fe503b8c/contrib/mixin/config.libsonnet#L13
     #     'mixin': """
-    #     local kp = { prometheusAlerts+:: {}, prometheusRules+:: {}} + (import "mixin.libsonnet");
-
+    #     local kp =
+    #         { prometheusAlerts+:: {}, prometheusRules+:: {}} +
+    #         (import "mixin.libsonnet") +
+    #         {'_config': {
+    #             'etcd_selector': 'job=~".*etcd.*"',
+    #             'etcd_instance_labels': 'instance, pod',
+    #             'scrape_interval_seconds': 30,
+    #             'clusterLabel': 'job',
+    #         }};
+    # 
     #     kp.prometheusAlerts + kp.prometheusRules
     #     """
     # },
-
-    # whizard-telemetry rules
     {
-        'source': 'file://manifests/whizard-telemetry-prometheusRule.yaml',
-        'destination': '../charts/kube-prometheus-stack/templates/prometheus/rules-1.14-whizard-telemetry',
+        'source': 'file://../../../ks-prometheus/manifests/wiztelemetry-prometheusRule.yaml',
+        'destination': '../templates/wiztelemetry-rules',
         'min_kubernetes': '1.14.0-0'
     },
 ]
 
 # Additional conditions map
 condition_map = {
-    # 'alertmanager.rules': ' .Values.defaultRules.rules.alertmanager',
-    # 'config-reloaders': ' .Values.defaultRules.rules.configReloaders',
-    # 'etcd': ' .Values.kubeEtcd.enabled .Values.defaultRules.rules.etcd',
-    # 'general.rules': ' .Values.defaultRules.rules.general',
-    # 'k8s.rules.container_cpu_usage_seconds_total': ' .Values.defaultRules.rules.k8sContainerCpuUsageSecondsTotal',
-    # 'k8s.rules.container_memory_cache': ' .Values.defaultRules.rules.k8sContainerMemoryCache',
-    # 'k8s.rules.container_memory_rss': ' .Values.defaultRules.rules.k8sContainerMemoryRss',
-    # 'k8s.rules.container_memory_swap': ' .Values.defaultRules.rules.k8sContainerMemorySwap',
-    # 'k8s.rules.container_memory_working_set_bytes': ' .Values.defaultRules.rules.k8sContainerMemoryWorkingSetBytes',
-    # 'k8s.rules.container_resource': ' .Values.defaultRules.rules.k8sContainerResource',
-    # 'k8s.rules.pod_owner': ' .Values.defaultRules.rules.k8sPodOwner',
-    # 'kube-apiserver-availability.rules': ' .Values.kubeApiServer.enabled .Values.defaultRules.rules.kubeApiserverAvailability',
-    # 'kube-apiserver-burnrate.rules': ' .Values.kubeApiServer.enabled .Values.defaultRules.rules.kubeApiserverBurnrate',
-    # 'kube-apiserver-histogram.rules': ' .Values.kubeApiServer.enabled .Values.defaultRules.rules.kubeApiserverHistogram',
-    # 'kube-apiserver-slos': ' .Values.kubeApiServer.enabled .Values.defaultRules.rules.kubeApiserverSlos',
-    # 'kube-prometheus-general.rules': ' .Values.defaultRules.rules.kubePrometheusGeneral',
-    # 'kube-prometheus-node-recording.rules': ' .Values.defaultRules.rules.kubePrometheusNodeRecording',
-    # 'kube-scheduler.rules': ' .Values.kubeScheduler.enabled .Values.defaultRules.rules.kubeSchedulerRecording',
-    # 'kube-state-metrics': ' .Values.defaultRules.rules.kubeStateMetrics',
-    # 'kubelet.rules': ' .Values.kubelet.enabled .Values.defaultRules.rules.kubelet',
-    # 'kubernetes-apps': ' .Values.defaultRules.rules.kubernetesApps',
-    # 'kubernetes-resources': ' .Values.defaultRules.rules.kubernetesResources',
-    # 'kubernetes-storage': ' .Values.defaultRules.rules.kubernetesStorage',
-    # 'kubernetes-system': ' .Values.defaultRules.rules.kubernetesSystem',
-    # 'kubernetes-system-kube-proxy': ' .Values.kubeProxy.enabled .Values.defaultRules.rules.kubeProxy',
-    # 'kubernetes-system-apiserver': ' .Values.defaultRules.rules.kubernetesSystem', # kubernetes-system was split into more groups in 1.14, one of them is kubernetes-system-apiserver
-    # 'kubernetes-system-kubelet': ' .Values.defaultRules.rules.kubernetesSystem', # kubernetes-system was split into more groups in 1.14, one of them is kubernetes-system-kubelet
-    # 'kubernetes-system-controller-manager': ' .Values.kubeControllerManager.enabled .Values.defaultRules.rules.kubeControllerManager',
-    # 'kubernetes-system-scheduler': ' .Values.kubeScheduler.enabled .Values.defaultRules.rules.kubeSchedulerAlerting',
-    # 'node-exporter.rules': ' .Values.defaultRules.rules.nodeExporterRecording',
-    # 'node-exporter': ' .Values.defaultRules.rules.nodeExporterAlerting',
-    # 'node.rules': ' .Values.defaultRules.rules.node',
-    # 'node-network': ' .Values.defaultRules.rules.network',
-    # 'prometheus-operator': ' .Values.defaultRules.rules.prometheusOperator',
-    # 'prometheus': ' .Values.defaultRules.rules.prometheus', # kube-prometheus >= 1.14 uses prometheus as group instead of prometheus.rules
-    # 'windows.node.rules': ' .Values.windowsMonitoring.enabled .Values.defaultRules.rules.windows',
-    # 'windows.pod.rules': ' .Values.windowsMonitoring.enabled .Values.defaultRules.rules.windows',
-
-    # whizard-telemetry rules
-    'whizard-telemetry-apiserver.rules': ' .Values.defaultRules.rules.whizardTelemetry',
-    'whizard-telemetry-cluster.rules': ' .Values.defaultRules.rules.whizardTelemetry',
-    'whizard-telemetry-namespace.rules': ' .Values.defaultRules.rules.whizardTelemetry',
-    'whizard-telemetry-node.rules': ' .Values.defaultRules.rules.whizardTelemetry',
-    'whizard-telemetry-etcd.rules': ' .Values.defaultRules.rules.whizardTelemetry',
-    'whizard-telemetry-kube-scheduler.rules': ' .Values.defaultRules.rules.whizardTelemetry',
+    # wiztelemetry rules
+    'wiztelemetry-apiserver.rules': ' .Values.defaultRules.rules.wiztelemetry.apiserver',
+    'wiztelemetry-cluster.rules': ' .Values.defaultRules.rules.wiztelemetry.cluster',
+    'wiztelemetry-namespace.rules': ' .Values.defaultRules.rules.wiztelemetry.namespace',
+    'wiztelemetry-node.rules': ' .Values.defaultRules.rules.wiztelemetry.node',
+    'wiztelemetry-etcd.rules': ' .Values.defaultRules.rules.wiztelemetry.etcd',
+    'wiztelemetry-kube-scheduler.rules': ' .Values.defaultRules.rules.wiztelemetry.scheduler',
+    'wiztelemetry-ascend-npu.rules': ' .Values.defaultRules.rules.gpuDevice.ascendNPU',
+    'wiztelemetry-cambricon-mlu.rules': ' .Values.defaultRules.rules.gpuDevice.cambriconMLU',
+    'wiztelemetry-nvidia-gpu.rules': ' .Values.defaultRules.rules.gpuDevice.nvidiaGPU'
 }
 
 alert_condition_map = {
-    'AggregatedAPIDown': 'semverCompare ">=1.18.0-0" $kubeTargetVersion',
-    'AlertmanagerDown': '.Values.alertmanager.enabled',
-    'CoreDNSDown': '.Values.kubeDns.enabled',
-    'KubeAPIDown': '.Values.kubeApiServer.enabled',  # there are more alerts which are left enabled, because they'll never fire without metrics
-    'KubeControllerManagerDown': '.Values.kubeControllerManager.enabled',
-    'KubeletDown': '.Values.prometheusOperator.kubeletService.enabled',  # there are more alerts which are left enabled, because they'll never fire without metrics
-    'KubeSchedulerDown': '.Values.kubeScheduler.enabled',
-    'KubeStateMetricsDown': '.Values.kubeStateMetrics.enabled',  # there are more alerts which are left enabled, because they'll never fire without metrics
-    'NodeExporterDown': '.Values.nodeExporter.enabled',
-    'PrometheusOperatorDown': '.Values.prometheusOperator.enabled',
+    # 'AggregatedAPIDown': 'semverCompare ">=1.18.0-0" $kubeTargetVersion',
+    # 'AlertmanagerDown': '.Values.alertmanager.enabled',
+    # 'CoreDNSDown': '.Values.kubeDns.enabled',
+    # 'KubeAPIDown': '.Values.kubeApiServer.enabled',  # there are more alerts which are left enabled, because they'll never fire without metrics
+    # 'KubeControllerManagerDown': '.Values.kubeControllerManager.enabled',
+    # 'KubeletDown': '.Values.prometheusOperator.kubeletService.enabled',  # there are more alerts which are left enabled, because they'll never fire without metrics
+    # 'KubeSchedulerDown': '.Values.kubeScheduler.enabled',
+    # 'KubeStateMetricsDown': '.Values.kubeStateMetrics.enabled',  # there are more alerts which are left enabled, because they'll never fire without metrics
+    # 'NodeExporterDown': '.Values.nodeExporter.enabled',
+    # 'PrometheusOperatorDown': '.Values.prometheusOperator.enabled',
 }
 
 replacement_map = {
-    'job="prometheus-operator"': {
-        'replacement': 'job="{{ $operatorJob }}"',
-        'init': '{{- $operatorJob := printf "%s-%s" (include "kube-prometheus-stack.fullname" .) "operator" }}'},
-    'job="prometheus-k8s"': {
-        'replacement': 'job="{{ $prometheusJob }}"',
-        'init': '{{- $prometheusJob := printf "%s-%s" (include "kube-prometheus-stack.fullname" .) "prometheus" }}'},
-    'job="alertmanager-main"': {
-        'replacement': 'job="{{ $alertmanagerJob }}"',
-        'init': '{{- $alertmanagerJob := printf "%s-%s" (include "kube-prometheus-stack.fullname" .) "alertmanager" }}'},
-    'namespace="monitoring"': {
-        'replacement': 'namespace="{{ $namespace }}"',
-        'init': '{{- $namespace := printf "%s" (include "kube-prometheus-stack.namespace" .) }}'},
-    'alertmanager-$1': {
-        'replacement': '$1',
-        'init': ''},
-    'job="kube-state-metrics"': {
-        'replacement': 'job="{{ $kubeStateMetricsJob }}"',
-        'init': '{{- $kubeStateMetricsJob := include "kube-prometheus-stack-kube-state-metrics.name" . }}'},
-    'job="{{ $kubeStateMetricsJob }}"': {
-        'replacement': 'job="{{ $kubeStateMetricsJob }}", namespace=~"{{ $targetNamespace }}"',
-        'limitGroup': ['kubernetes-apps'],
-        'init': '{{- $targetNamespace := .Values.defaultRules.appNamespacesTarget }}'},
-    'job="kubelet"': {
-        'replacement': 'job="kubelet", namespace=~"{{ $targetNamespace }}"',
-        'limitGroup': ['kubernetes-storage'],
-        'init': '{{- $targetNamespace := .Values.defaultRules.appNamespacesTarget }}'},
-    'runbook_url: https://runbooks.prometheus-operator.dev/runbooks/': {
-        'replacement': 'runbook_url: {{ .Values.defaultRules.runbookUrl }}/',
-        'init': ''},
-    '(namespace,service)': {
-        'replacement': '(namespace,service,cluster)',
-        'init': ''},
-    '(namespace, job, handler': {
-        'replacement': '(cluster, namespace, job, handler',
-        'init': ''}
+    # 'job="prometheus-operator"': {
+    #     'replacement': 'job="{{ $operatorJob }}"',
+    #     'init': '{{- $operatorJob := printf "%s-%s" (include "kube-prometheus-stack.fullname" .) "operator" }}'},
+    # 'job="prometheus-k8s"': {
+    #     'replacement': 'job="{{ $prometheusJob }}"',
+    #     'init': '{{- $prometheusJob := printf "%s-%s" (include "kube-prometheus-stack.fullname" .) "prometheus" }}'},
+    # 'job="alertmanager-main"': {
+    #     'replacement': 'job="{{ $alertmanagerJob }}"',
+    #     'init': '{{- $alertmanagerJob := printf "%s-%s" (include "kube-prometheus-stack.fullname" .) "alertmanager" }}'},
+    # 'namespace="monitoring"': {
+    #     'replacement': 'namespace="{{ $namespace }}"',
+    #     'init': '{{- $namespace := printf "%s" (include "kube-prometheus-stack.namespace" .) }}'},
+    # 'alertmanager-$1': {
+    #     'replacement': '$1',
+    #     'init': ''},
+    # 'job="kube-state-metrics"': {
+    #     'replacement': 'job="{{ $kubeStateMetricsJob }}"',
+    #     'init': '{{- $kubeStateMetricsJob := include "kube-prometheus-stack-kube-state-metrics.name" . }}'},
+    # 'job="{{ $kubeStateMetricsJob }}"': {
+    #     'replacement': 'job="{{ $kubeStateMetricsJob }}", namespace=~"{{ $targetNamespace }}"',
+    #     'limitGroup': ['kubernetes-apps'],
+    #     'init': '{{- $targetNamespace := .Values.defaultRules.appNamespacesTarget }}'},
+    # 'job="kubelet"': {
+    #     'replacement': 'job="kubelet", namespace=~"{{ $targetNamespace }}"',
+    #     'limitGroup': ['kubernetes-storage'],
+    #     'init': '{{- $targetNamespace := .Values.defaultRules.appNamespacesTarget }}'},
+    # 'runbook_url: https://runbooks.prometheus-operator.dev/runbooks/': {
+    #     'replacement': 'runbook_url: {{ .Values.defaultRules.runbookUrl }}/',
+    #     'init': ''},
+    # '(namespace,service)': {
+    #     'replacement': '(namespace,service,cluster)',
+    #     'init': ''},
+    # '(namespace, job, handler': {
+    #     'replacement': '(cluster, namespace, job, handler',
+    #     'init': ''},
+    # '$.Values.defaultRules.node.fsSelector': {
+    #     'replacement': '{{ $.Values.defaultRules.node.fsSelector }}',
+    #     'init': ''},
 }
 
 # standard header
@@ -225,11 +208,11 @@ https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-promet
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: {{ printf "%%s-%%s" (include "kube-prometheus-stack.fullname" .) "%(name)s" | trunc 63 | trimSuffix "-" }}
-  namespace: {{ template "kube-prometheus-stack.namespace" . }}
+  name: {{ printf "%%s-%%s" (include "wiztelemetry-monitoring-helper.fullname" .) "%(name)s" | trunc 63 | trimSuffix "-" }}
+  namespace: {{ template "wiztelemetry-monitoring-helper.namespace" . }}
   labels:
-    app: {{ template "kube-prometheus-stack.name" . }}
-{{ include "kube-prometheus-stack.labels" . | indent 4 }}
+    app: {{ template "wiztelemetry-monitoring-helper.name" . }}
+{{ include "wiztelemetry-monitoring-helper.labels" . | indent 4 }}
 {{- if .Values.defaultRules.labels }}
 {{ toYaml .Values.defaultRules.labels | indent 4 }}
 {{- end }}
@@ -358,7 +341,7 @@ def add_custom_labels(rules_str, group, indent=4, label_indent=2):
     # should only be added if there are .Values defaultRules.additionalRuleLabels defined
     rule_seperator = "\n" + " " * indent + "-.*"
     label_seperator = "\n" + " " * indent + "  labels:"
-    section_seperator = "\n" + " " * indent + "  \S"
+    section_seperator = "\n" + " " * indent + "  \\S"
     section_seperator_len = len(section_seperator)-1
     rules_positions = re.finditer(rule_seperator,rules_str)
 
@@ -554,13 +537,12 @@ def write_group_to_file(group, url, destination, min_kubernetes, max_kubernetes)
     print("Generated %s" % new_filename)
 
 def write_rules_names_template():
-    # whizard-telemetry rules
-    with open('../charts/kube-prometheus-stack/templates/prometheus/_rules-whizard-telemetry.tpl', 'w') as f:
+    with open('../templates/prometheus/_rules.tpl', 'w') as f:
         f.write('''{{- /*
 Generated file. Do not change in-place! In order to change this file first read following link:
 https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack/hack
 */ -}}\n''')
-        f.write('{{- define "rules-whizard-telemetry.names" }}\n')
+        f.write('{{- define "rules.names" }}\n')
         f.write('rules:\n')
         for rule in condition_map:
             f.write('  - "%s"\n' % sanitize_name(rule))
@@ -623,7 +605,7 @@ def main():
         else:
             url = chart['source']
             print("Generating rules from %s" % url)
-            if chart['source'].startswith("file://"): # whizard-telemetry rules are local files
+            if chart['source'].startswith("file://"): # wiztelemetry rules are local files
                 f = open(chart['source'][7:])
                 raw_text = f.read()
             else:
@@ -646,7 +628,7 @@ def main():
             write_group_to_file(group, url, chart['destination'], chart['min_kubernetes'], chart['max_kubernetes'])
 
     # write rules.names named template
-    write_rules_names_template()
+    # write_rules_names_template()
 
     print("Finished")
 
@@ -656,10 +638,17 @@ def sanitize_name(name):
 
 
 def jsonnet_import_callback(base, rel):
-    if "github.com" in base:
-        base = os.getcwd() + '/vendor/' + base[base.find('github.com'):]
-    elif "github.com" in rel:
+    # rel_base is the path relative to the current cwd.
+    # see https://github.com/prometheus-community/helm-charts/issues/5283
+    # for more details.
+    rel_base = base
+    if rel_base.startswith(os.getcwd()):
+        rel_base = base[len(os.getcwd()):]
+
+    if "github.com" in rel:
         base = os.getcwd() + '/vendor/'
+    elif "github.com" in rel_base:
+        base = os.getcwd() + '/vendor/' + rel_base[rel_base.find('github.com'):]
 
     if os.path.isfile(base + rel):
         return base + rel, open(base + rel).read().encode('utf-8')

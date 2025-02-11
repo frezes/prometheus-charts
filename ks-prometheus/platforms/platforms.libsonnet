@@ -1,5 +1,5 @@
 local platforms = {
-  whizardTelemetry: import './whizardTelemetry.libsonnet',
+  wiztelemetry: import './wiztelemetry.libsonnet',
 };
 
 // platformPatch returns the platform specific patch associated to the given
@@ -21,7 +21,7 @@ local platformPatch(p) = if p != null && std.objectHas(platforms, p) then platfo
     prometheusAdapter: {},
     prometheusOperator: {},
     pyrra: {},
-    whizardTelemetry: {}
+    wiztelemetry: {}
   } + platformPatch($.values.common.platform),
 
   alertmanager+: p.alertmanager,
@@ -35,5 +35,5 @@ local platformPatch(p) = if p != null && std.objectHas(platforms, p) then platfo
   kubernetesControlPlane+: p.kubernetesControlPlane,
   kubePrometheus+: p.kubePrometheus,
   pyrra+: p.pyrra,
-  whizardTelemetry+: p.whizardTelemetry,
+  wiztelemetry+: p.wiztelemetry,
 }

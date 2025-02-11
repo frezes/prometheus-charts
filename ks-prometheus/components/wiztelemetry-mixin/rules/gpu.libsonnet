@@ -10,7 +10,7 @@
   prometheusRules+:: {
     groups+: [
       {
-        name: "whizard-telemetry-cambricon-mlu.rules",
+        name: "wiztelemetry-cambricon-mlu.rules",
         rules: [
           {
             record: 'node_namespace_pod_container:container_gpu_utilization',
@@ -123,7 +123,7 @@
         ],
       },
       {
-        name: "whizard-telemetry-nvidia-gpu.rules",
+        name: "wiztelemetry-nvidia-gpu.rules",
         rules: [
           {
             record: 'node_namespace_pod_container:container_gpu_utilization',
@@ -342,9 +342,9 @@
             ||| % $._config,
           },
         ],
-      }
+      },
       {
-        name: "whizard-telemetry-ascend-npu.rules",
+        name: "wiztelemetry-ascend-npu.rules",
         rules: [
           {
             record: 'node_namespace_pod_container:container_gpu_utilization',

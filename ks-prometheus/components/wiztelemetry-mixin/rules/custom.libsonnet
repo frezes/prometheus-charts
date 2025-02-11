@@ -17,7 +17,7 @@
   prometheusRules+:: {
     groups+: [
       {
-        name: 'whizard-telemetry-cluster.rules',
+        name: 'wiztelemetry-cluster.rules',
         rules: [
           {
             // pod attribute tuple tuple (cluster, node, workspace, namespace, pod, qos_class, phase, workload, workload_type) ==> 1
@@ -116,7 +116,7 @@
         ],
       },
       {
-        name: 'whizard-telemetry-node.rules',
+        name: 'wiztelemetry-node.rules',
         rules: [
           {
             record: 'node:node_cpu_utilization:ratio',
@@ -431,7 +431,7 @@
         ],
       },
       {
-        name: 'whizard-telemetry-namespace.rules',
+        name: 'wiztelemetry-namespace.rules',
         rules: [
           {
             record: 'namespace:workload_cpu_usage:sum',
@@ -523,7 +523,7 @@
         ]
       },
       {
-        name: 'whizard-telemetry-apiserver.rules',
+        name: 'wiztelemetry-apiserver.rules',
         rules: [
           {
             record: 'apiserver:apiserver_request_total:sum_irate',
@@ -552,7 +552,7 @@
         ],
       },
       {
-        name: 'whizard-telemetry-etcd.rules',
+        name: 'wiztelemetry-etcd.rules',
         rules: [
           {
             expr: |||
@@ -702,7 +702,7 @@
         ],
       },
       {
-        name: "whizard-telemetry-kube-scheduler.rules",
+        name: "wiztelemetry-kube-scheduler.rules",
         rules: [
           {
             record: 'cluster_quantile:%s:histogram_quantile' % metric,

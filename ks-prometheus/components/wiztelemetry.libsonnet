@@ -2,11 +2,11 @@ local defaults = {
   local defaults = self,
   // Convention: Top-level fields related to CRDs are public, other fields are hidden
   // If there is no CRD for the component, everything is hidden in defaults.
-  name:: 'whizard-telemetry',
+  name:: 'wiztelemetry',
   namespace:: error 'must provide namespace',
   commonLabels:: {
-    'app.kubernetes.io/name': 'whizard-telemetry',
-    'app.kubernetes.io/part-of': 'whizard-telemetry',
+    'app.kubernetes.io/name': 'wiztelemetry',
+    'app.kubernetes.io/part-of': 'wiztelemetry',
   },
 
   mixin:: {
@@ -29,7 +29,7 @@ function(params) {
     labels: ne._config.commonLabels,
   },
 
-  mixin:: (import './whizard-telemetry-mixin/mixin.libsonnet') +
+  mixin:: (import './wiztelemetry-mixin/mixin.libsonnet') +
           (import 'github.com/kubernetes-monitoring/kubernetes-mixin/lib/add-runbook-links.libsonnet') {
             _config+:: ne._config.mixin._config,
           },

@@ -1,0 +1,91 @@
+# Default values for wiztelemetry-monitoring-helper.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+global:
+  ## Global image registry to use if it needs to be overriden for some specific use cases (e.g local registries, custom images, ...)
+  ##
+  imageRegistry: ""
+
+  ## Reference to one or more secrets to be used when pulling images
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  ##
+  imagePullSecrets: []
+  # - name: "image-pull-secret"
+  # or
+  # - "image-pull-secret"
+
+  clusterInfo: {}
+
+  whizard:
+    enabled: false
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: "wiztelemetry-monitoring-helper"
+
+hook:
+  image:
+    registry: docker.io
+    repository: kubesphere/kubectl
+    tag: v1.27.12
+    pullPolicy: IfNotPresent
+  backoffLimit: 3
+
+etcdMonitoringHelper:
+  enabled: false
+
+gpuMonitoringHelper:
+  enabled: false
+
+whizardHelper:
+  enabled: false
+
+reverseProxy:
+  enabled: false
+  endpoint: http://prometheus-k8s.kubesphere-monitoring-system.svc:9090
+roleTemplate:
+  enabled: false
+
+
+defaultRules:
+  create: true
+  rules:
+    wiztelemetry:
+      apiserver: true
+      cluster: true
+      namespace: true
+      node: true
+      etcd: true
+      scheduler: true
+    gpuDevice:
+      ascendNPU: true
+      cambriconMLU: true
+      nvidiaGPU: true
+
+  additionalRuleGroupLabels:
+    wiztelemetry:
+      apiserver: {}
+      cluster: {}
+      namespace: {}
+      node: {}
+      etcd: {}
+      scheduler: {}
+    gpuDevice:
+      ascendNPU: {}
+      cambriconMLU: {}
+      nvidiaGPU: {}
+
+  ## Additional labels for PrometheusRule alerts
+  additionalRuleLabels: {}
+
+  ## Labels for default rules
+  labels:
+    prometheus: k8s
+    role: alert-rules
+
+  ## Annotations for default rules
+  annotations: {}
+
+
+extraManifests: []

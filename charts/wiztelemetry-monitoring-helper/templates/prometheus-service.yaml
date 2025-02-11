@@ -1,0 +1,47 @@
+{{- if .Values.global.whizard.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/part-of: whizard
+    app.kubernetes.io/name: whizard-agent-proxy
+    app.kubernetes.io/vendor: kubesphere
+  name: prometheus-k8s
+  namespace: {{ template "wiztelemetry-monitoring-helper.namespace" . }}  
+spec:
+  ports:
+  - name: web
+    port: 9090
+    protocol: TCP
+    targetPort: 9090
+  selector:
+    app.kubernetes.io/name: whizard-agent-proxy
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+  type: ClusterIP
+{{- else }}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    app.kubernetes.io/vendor: kubesphere
+  name: prometheus-k8s
+  namespace: {{ template "wiztelemetry-monitoring-helper.namespace" . }}
+spec:
+  ports:
+  - name: web
+    port: 9090
+    protocol: TCP
+    targetPort: 9090
+  selector:
+    app.kubernetes.io/name: prometheus
+    operator.prometheus.io/name: k8s
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+  type: ClusterIP
+{{- end }}
