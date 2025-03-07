@@ -2465,11 +2465,106 @@ kube-state-metrics:
         cpu: 20m
         memory: 20Mi
 
-  extraArgs:
-    - --custom-resource-state-config
-    - |
+  customResourceState:
+    enabled: true
+    # Add (Cluster)Role permissions to list/watch the customResources defined in the config to rbac.extraRules
+    config:
+      kind: CustomResourceStateMetrics
       spec:
         resources:
+          - groupVersionKind:
+              group: cluster.kubesphere.io
+              kind: "Cluster"
+              version: "*"
+            metricNamePrefix: ""
+            labelsFromPath:
+              cluster: [metadata, name]
+            metrics:
+              - name: "kubesphere_cluster_info"
+                help: "information about cluster.kubesphere.io/cluster."
+                each:
+                  type: Info
+                  info:
+                    labelsFromPath:
+                      provider: [spec, provider]
+                      kubesphere_version: [status, kubeSphereVersion]
+                      kubernetes_version: [status, kubernetesVersion]
+              - name: "kubesphere_cluster_labels"
+                help: "cluster.kubesphere.io/cluster labels."
+                each:
+                  type: Info
+                  info:
+                    labelsFromPath:
+                      "*": [metadata, labels]
+              - name: "kubesphere_cluster_status_conditions"
+                help: "cluster.kubesphere.io/cluster'status conditions."
+                each:
+                  type: Gauge
+                  gauge:
+                    path: [status, conditions]
+                    labelsFromPath:
+                      type: ["type"]
+                    valueFrom: ["status"]
+          - groupVersionKind:
+              group: cluster.kubesphere.io
+              kind: "Label"
+              version: "*"
+            metricNamePrefix: ""
+            labelsFromPath:
+              label: [metadata, name]
+            metrics:
+              - name: "kubesphere_label_info"
+                help: "information about cluster.kubesphere.io/label."
+                each:
+                  type: Info
+                  info:
+                    path: [spec, clusters]
+                    labelsFromPath:
+                      cluster: []
+                labelsFromPath:
+                  key: [spec, key]
+                  value: [spec, value]
+          - groupVersionKind:
+              group: quota.kubesphere.io
+              version: "*"
+              kind: ResourceQuota
+            metricNamePrefix: ""
+            labelsFromPath:
+              resourcequota: [metadata, name]
+              workspace: [metadata, labels, kubesphere\.io/workspace]
+            metrics:
+              - name: "kubesphere_resourcequota_hard"
+                help: "Resource quota hard limits"
+                each:
+                  type: Gauge
+                  gauge:
+                    path: [status, total, hard]
+                    labelFromKey: resource
+                    valueFrom: []
+                    conversions:
+                      - pattern: "^([0-9.]+)([A-Za-z]+)$"
+                        factor:
+                          Mi: 1048576
+                          Gi: 1073741824
+                          m: 0.001
+                commonLabels:
+                  type: "hard"
+              - name: "kubesphere_resourcequota_used"
+                help: "kubesphere resourcequota used"
+                each:
+                  type: Gauge
+                  gauge:
+                    path: [status, total, used]
+                    labelFromKey: resource
+                    valueFrom: []
+                    conversions:
+                      - pattern: "^([0-9.]+)([A-Za-z]+)$"
+                        factor:
+                          Mi: 1048576
+                          Gi: 1073741824
+                          m: 0.001
+                commonLabels:
+                  type: "used"
           - groupVersionKind:
               group: iam.kubesphere.io
               kind: "ClusterRoleBinding"
@@ -2496,15 +2591,20 @@ kube-state-metrics:
                   info:
                     labelsFromPath:
                       clusterrole: [metadata, name]
+
   rbac:
     create: true
     extraRules:
-    - apiGroups: ["apiextensions.k8s.io"]
-      resources: ["customresourcedefinitions"]
+    - apiGroups: ["cluster.kubesphere.io"]
+      resources: ["clusters", "labels"]
+      verbs: ["list", "watch"]
+    - apiGroups: ["quota.kubesphere.io"]
+      resources: ["resourcequotas"]
       verbs: ["list", "watch"]
     - apiGroups: ["iam.kubesphere.io"]
       resources: ["clusterroles", "clusterrolebindings"]
       verbs: ["list", "watch"]
+
   releaseLabel: true
 
   nodeSelector:
@@ -2529,35 +2629,6 @@ kube-state-metrics:
   metricLabelsAllowlist:
     - '*=[kubesphere.io/workspace,storage.kubesphere.io/storagetype]'
   metricAnnotationsAllowList: []
-  collectors:
-    - certificatesigningrequests
-    - configmaps
-    - cronjobs
-    - daemonsets
-    - deployments
-    - endpoints
-    - horizontalpodautoscalers
-    - ingresses
-    - jobs
-    - leases
-    - limitranges
-    - mutatingwebhookconfigurations
-    - namespaces
-    - networkpolicies
-    - nodes
-    - persistentvolumeclaims
-    - persistentvolumes
-    - poddisruptionbudgets
-    - pods
-    - replicasets
-    - replicationcontrollers
-    - resourcequotas
-    - secrets
-    - services
-    - statefulsets
-    - storageclasses
-    - validatingwebhookconfigurations
-    - volumeattachments
 
   ## Enable scraping via kubernetes-service-endpoints
   ## Disabled by default as we service monitor is enabled below
