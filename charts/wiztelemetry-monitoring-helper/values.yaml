@@ -17,9 +17,6 @@ global:
 
   clusterInfo: {}
 
-  whizard:
-    enabled: true
-
 nameOverride: ""
 fullnameOverride: "wiztelemetry-monitoring-helper"
 
@@ -41,7 +38,7 @@ hook:
 etcdMonitoringHelper:
   enabled: true
   etcdEndpointSecretGenerator:
-    enabeld: true
+    enabled: false
 
 gpuMonitoringHelper:
   enabled: false
