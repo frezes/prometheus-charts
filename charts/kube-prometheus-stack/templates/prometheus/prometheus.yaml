@@ -220,7 +220,7 @@ spec:
 {{ toYaml .Values.prometheus.prometheusSpec.additionalRemoteRead | indent 4 }}
 {{- end }}
 {{- end }}
-{{- if (or .Values.prometheus.prometheusSpec.remoteWrite .Values.prometheus.prometheusSpec.additionalRemoteWrite .Values.prometheus.agentMode) }}
+{{- if (or .Values.prometheus.prometheusSpec.remoteWrite .Values.prometheus.prometheusSpec.additionalRemoteWrite (and .Values.prometheus.agentMode .Values.prometheus.prometheusSpec.internalRemoteWrite)) }}
   remoteWrite:
 {{- if and .Values.prometheus.agentMode .Values.prometheus.prometheusSpec.internalRemoteWrite }}
 {{ tpl (toYaml .Values.prometheus.prometheusSpec.internalRemoteWrite | indent 4) . }}
