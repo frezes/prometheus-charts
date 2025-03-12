@@ -19,6 +19,9 @@ data:
     deleteDatasources:
 {{ tpl (toYaml .Values.grafana.deleteDatasources | indent 6) . }}
 {{- end }}
+{{- if .Values.grafana.prune }}
+    prune: {{ .Values.grafana.prune }}
+{{- end }}
     datasources:
 {{- $scrapeInterval := .Values.grafana.sidecar.datasources.defaultDatasourceScrapeInterval | default .Values.prometheus.prometheusSpec.scrapeInterval | default "30s" }}
 {{- if .Values.grafana.sidecar.datasources.defaultDatasourceEnabled }}
@@ -42,6 +45,7 @@ data:
         exemplarTraceIdDestinations:
         - datasourceUid: {{ .Values.grafana.sidecar.datasources.exemplarTraceIdDestinations.datasourceUid }}
           name: {{ .Values.grafana.sidecar.datasources.exemplarTraceIdDestinations.traceIdLabelName }}
+          urlDisplayLabel: {{ .Values.grafana.sidecar.datasources.exemplarTraceIdDestinations.urlDisplayLabel }}
 {{- end }}
 {{- if .Values.grafana.sidecar.datasources.createPrometheusReplicasDatasources }}
 {{- range until (int .Values.prometheus.prometheusSpec.replicas) }}
@@ -57,6 +61,7 @@ data:
         exemplarTraceIdDestinations:
         - datasourceUid: {{ $.Values.grafana.sidecar.datasources.exemplarTraceIdDestinations.datasourceUid }}
           name: {{ $.Values.grafana.sidecar.datasources.exemplarTraceIdDestinations.traceIdLabelName }}
+          urlDisplayLabel: {{ .Values.grafana.sidecar.datasources.exemplarTraceIdDestinations.urlDisplayLabel }}
 {{- end }}
 {{- end }}
 {{- end }}
