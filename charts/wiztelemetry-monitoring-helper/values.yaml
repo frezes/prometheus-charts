@@ -17,10 +17,6 @@ global:
 
   clusterInfo: {}
 
-  whizard:
-    enabled: false
-
-imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: "wiztelemetry-monitoring-helper"
 
@@ -30,23 +26,28 @@ hook:
     repository: kubesphere/kubectl
     tag: v1.27.12
     pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 20m
+      memory: 50Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
   backoffLimit: 3
 
 etcdMonitoringHelper:
-  enabled: false
+  enabled: true
+  etcdEndpointSecretGenerator:
+    enabled: false
 
 gpuMonitoringHelper:
   enabled: false
 
-whizardHelper:
-  enabled: false
-
 reverseProxy:
-  enabled: false
+  enabled: true
   endpoint: http://prometheus-k8s.kubesphere-monitoring-system.svc:9090
 roleTemplate:
-  enabled: false
-
+  enabled: true
 
 defaultRules:
   create: true
@@ -78,7 +79,6 @@ defaultRules:
 
   ## Additional labels for PrometheusRule alerts
   additionalRuleLabels: {}
-
   ## Labels for default rules
   labels:
     prometheus: k8s
