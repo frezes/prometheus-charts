@@ -2476,32 +2476,39 @@ kube-state-metrics:
               group: cluster.kubesphere.io
               kind: "Cluster"
               version: "*"
-            metricNamePrefix: ""
+            metricNamePrefix: "kubesphere_cluster"
             labelsFromPath:
-              cluster: [metadata, name]
+              kubesphere_cluster: [metadata, name]
+              provider: [spec, provider]
             metrics:
-              - name: "kubesphere_cluster_info"
+              - name: "info"
                 help: "information about cluster.kubesphere.io/cluster."
                 each:
                   type: Info
                   info:
                     labelsFromPath:
-                      provider: [spec, provider]
                       kubesphere_version: [status, kubeSphereVersion]
                       kubernetes_version: [status, kubernetesVersion]
-              - name: "kubesphere_cluster_labels"
-                help: "cluster.kubesphere.io/cluster labels."
+                      cluster_kubesphere_io_group: [metadata, labels, cluster.kubesphere.io/group]
+              - name: "created"
+                help: "created timestamp about cluster.kubesphere.io/cluster."
+                each:
+                  type: Gauge
+                  gauge:
+                    path: [metadata, creationTimestamp]
+              - name: "label_keys"
+                help: "role about cluster.kubesphere.io/cluster."
                 each:
                   type: Info
                   info:
-                    labelsFromPath:
-                      "*": [metadata, labels]
-              - name: "kubesphere_cluster_status_conditions"
+                    path: [metadata, labels]
+                    labelFromKey: "label_key"
+              - name: "status_conditions"
                 help: "cluster.kubesphere.io/cluster'status conditions."
                 each:
                   type: Gauge
                   gauge:
-                    path: [status, conditions]
+                    path: [status, conditions, "[type=Ready]"]
                     labelsFromPath:
                       type: ["type"]
                     valueFrom: ["status"]
@@ -2509,47 +2516,79 @@ kube-state-metrics:
               group: cluster.kubesphere.io
               kind: "Label"
               version: "*"
-            metricNamePrefix: ""
+            metricNamePrefix: "kubesphere_label"
             labelsFromPath:
               label: [metadata, name]
             metrics:
-              - name: "kubesphere_label_info"
+              - name: "placement"
                 help: "information about cluster.kubesphere.io/label."
                 each:
                   type: Info
                   info:
                     path: [spec, clusters]
                     labelsFromPath:
-                      cluster: []
+                      kubesphere_cluster: []
                 labelsFromPath:
                   key: [spec, key]
                   value: [spec, value]
           - groupVersionKind:
+              group: tenant.kubesphere.io
+              kind: "WorkspaceTemplate"
+              version: "v1beta1"
+            metricNamePrefix: "kubesphere_workspace_template"
+            labelsFromPath:
+              workspace_template: [metadata, name]
+            metrics:
+              - name: "info"
+                help: "information about cluster.kubesphere.io/label."
+                each:
+                  type: Info
+                  info:
+                    labelsFromPath:
+                      alias_name: [metadata, annotations, kubesphere.io/alias-name]
+                      description: [metadata, annotations, kubesphere.io/description]
+              - name: "placement"
+                help: "cluster placement about tenant.kubesphere.io/workspacetemplate."
+                each:
+                  type: Info
+                  info:
+                    path: [spec, placement, clusters]
+                    labelsFromPath:
+                      kubesphere_cluster: [name]
+              - name: "placement_selector"
+                errorLogV: 10
+                help: "cluster placement selector about tenant.kubesphere.io/workspacetemplate."
+                each:
+                  type: Info
+                  info:
+                    path: [spec, placement]
+                    labelFromKey: method
+              - name: "created"
+                help: "created timestamp about tenant.kubesphere.io/workspacetemplate."
+                each:
+                  type: Gauge
+                  gauge:
+                    path: [metadata, creationTimestamp]
+          - groupVersionKind:
               group: quota.kubesphere.io
               version: "*"
               kind: ResourceQuota
-            metricNamePrefix: ""
+            metricNamePrefix: "kubesphere_resourcequota"
             labelsFromPath:
               resourcequota: [metadata, name]
-              workspace: [metadata, labels, kubesphere\.io/workspace]
+              workspace: [metadata, labels, kubesphere.io/workspace]
             metrics:
-              - name: "kubesphere_resourcequota_hard"
-                help: "Resource quota hard limits"
+              - name: "hard"
+                help: "kubesphere resourcequota hard"
                 each:
                   type: Gauge
                   gauge:
                     path: [status, total, hard]
                     labelFromKey: resource
                     valueFrom: []
-                    conversions:
-                      - pattern: "^([0-9.]+)([A-Za-z]+)$"
-                        factor:
-                          Mi: 1048576
-                          Gi: 1073741824
-                          m: 0.001
                 commonLabels:
                   type: "hard"
-              - name: "kubesphere_resourcequota_used"
+              - name: "used"
                 help: "kubesphere resourcequota used"
                 each:
                   type: Gauge
@@ -2557,40 +2596,8 @@ kube-state-metrics:
                     path: [status, total, used]
                     labelFromKey: resource
                     valueFrom: []
-                    conversions:
-                      - pattern: "^([0-9.]+)([A-Za-z]+)$"
-                        factor:
-                          Mi: 1048576
-                          Gi: 1073741824
-                          m: 0.001
                 commonLabels:
                   type: "used"
-          - groupVersionKind:
-              group: iam.kubesphere.io
-              kind: "ClusterRoleBinding"
-              version: "v1beta1"
-            metricNamePrefix: ""
-            metrics:
-              - name: "kubesphere_clusterrolebinding_info"
-                help: "information about iam.kubesphere.io/clusterrolebinding."
-                each:
-                  type: Info
-                  info:
-                    labelsFromPath:
-                      clusterrolebinding: [metadata, name]
-          - groupVersionKind:
-              group: iam.kubesphere.io
-              kind: "ClusterRole"
-              version: "v1beta1"
-            metricNamePrefix: ""
-            metrics:
-              - name: "kubesphere_clusterrole_info"
-                help: "information about iam.kubesphere.io/clusterrole."
-                each:
-                  type: Info
-                  info:
-                    labelsFromPath:
-                      clusterrole: [metadata, name]
 
   rbac:
     create: true
@@ -2598,11 +2605,11 @@ kube-state-metrics:
     - apiGroups: ["cluster.kubesphere.io"]
       resources: ["clusters", "labels"]
       verbs: ["list", "watch"]
+    - apiGroups: ["tenant.kubesphere.io"]
+      resources: ["workspacetemplates"]
+      verbs: ["list", "watch"]
     - apiGroups: ["quota.kubesphere.io"]
       resources: ["resourcequotas"]
-      verbs: ["list", "watch"]
-    - apiGroups: ["iam.kubesphere.io"]
-      resources: ["clusterroles", "clusterrolebindings"]
       verbs: ["list", "watch"]
 
   releaseLabel: true
@@ -2612,20 +2619,19 @@ kube-state-metrics:
 
   metricDenylist:
     - kube_.+_version
-    - kube_.+_created
     - kube_deployment_(spec_paused|spec_strategy_rollingupdate_.+)
-    - kube_endpoint_(info|address_.+)
-    - kube_job_(info|owner|spec_(parallelism|active_deadline_seconds)|status_(active|.+_time))
+    - kube_endpoint_(info|address_.+|port_.+)
+    - kube_job_(info|owner|spec_(parallelism|active_deadline_seconds)|status_.+_time)
     - kube_cronjob_(info|status_.+|spec_.+)
     - kube_persistentvolume_(info|capacity_.+)
     - kube_persistentvolumeclaim_(resource_.+|access_.+)
     - kube_secret_(type)
-    - kube_service_(spec_.+|status_.+)
     - kube_ingress_(info|path|tls)
     - kube_replicaset_(status_.+|spec_.+)
     - kube_poddisruptionbudget_status_.+
     - kube_replicationcontroller_.+
     - kube_(hpa|replicaset|replicationcontroller)_.+_generation
+    - kube_(certificatesigningrequests|rolebinding|)_.+
   metricLabelsAllowlist:
     - '*=[kubesphere.io/workspace,storage.kubesphere.io/storagetype]'
   metricAnnotationsAllowList: []
@@ -2694,10 +2700,11 @@ kube-state-metrics:
       ##
       metricRelabelings:
         - action: replace
-          regex: (.*)
+          regex: kube_namespace_labels;(.*)
           replacement: $1
           sourceLabels:
-            - label_kubesphere_io_workspace
+          - __name__
+          - label_kubesphere_io_workspace
           targetLabel: workspace
       # - action: keep
       #   regex: 'kube_(daemonset|deployment|pod|namespace|node|statefulset).+'
