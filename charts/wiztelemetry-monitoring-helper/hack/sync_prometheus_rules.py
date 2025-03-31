@@ -134,7 +134,8 @@ condition_map = {
     # wiztelemetry rules
     'wiztelemetry-apiserver.rules': ' .Values.defaultRules.rules.wiztelemetry.apiserver',
     'wiztelemetry-cluster.rules': ' .Values.defaultRules.rules.wiztelemetry.cluster',
-    'wiztelemetry-namespace.rules': ' .Values.defaultRules.rules.wiztelemetry.namespace',
+    'wiztelemetry-workload.rules': ' .Values.defaultRules.rules.wiztelemetry.workload',
+    'wiztelemetry-pod.rules': ' .Values.defaultRules.rules.wiztelemetry.pod',
     'wiztelemetry-node.rules': ' .Values.defaultRules.rules.wiztelemetry.node',
     'wiztelemetry-etcd.rules': ' .Values.defaultRules.rules.wiztelemetry.etcd',
     'wiztelemetry-kube-scheduler.rules': ' .Values.defaultRules.rules.wiztelemetry.scheduler',

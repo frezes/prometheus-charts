@@ -25,11 +25,15 @@
             // must kms version > 2.8.0
             record: 'workspace_workload_node:kube_pod_info:',
             expr: |||
-              max by (%(clusterLabel)s, node, workspace, namespace, pod, qos_class, phase, workload, workload_type) (
+              max by (%(clusterLabel)s, node, ip, workspace, namespace, pod, qos_class, phase, workload, workload_type) (
                         kube_pod_info{%(kubeStateMetricsSelector)s}
                       * on (%(clusterLabel)s, namespace, pod) group_left (qos_class)
                         max by (%(clusterLabel)s, namespace, pod, qos_class) (
                           kube_pod_status_qos_class{%(kubeStateMetricsSelector)s} > 0
+                        )
+                      * on (%(clusterLabel)s, namespace, pod) group_left (ip)
+                        max by (%(clusterLabel)s, namespace, pod, ip) (
+                          kube_pod_ips{%(kubeStateMetricsSelector)s} > 0
                         )
                     * on (%(clusterLabel)s, namespace, pod) group_left (phase)
                       max by (%(clusterLabel)s, namespace, pod, phase) (kube_pod_status_phase{%(kubeStateMetricsSelector)s} > 0)
@@ -431,7 +435,7 @@
         ],
       },
       {
-        name: 'wiztelemetry-namespace.rules',
+        name: 'wiztelemetry-workload.rules',
         rules: [
           {
             record: 'namespace:workload_cpu_usage:sum',
@@ -520,8 +524,124 @@
               workload_type: 'statefulset',
             },
           },
+          {
+            record: 'namespace_workload:workload_created:relabel',
+            expr: |||
+              label_replace(kube_deployment_created{job="kube-state-metrics"},"workload", "$1", "deployment", "(.*)")
+            ||| % $._config,
+            labels: {
+              workload_type: 'deployment',
+            },
+          },
+          {
+            record: 'namespace_workload:workload_replicas:relabel',
+            expr: |||
+              label_replace(kube_deployment_status_replicas{job="kube-state-metrics"},"workload", "$1", "deployment", "(.*)")
+            ||| % $._config,
+            labels: {
+              workload_type: 'deployment',
+            },
+          },
+          {
+            record: 'namespace_workload:workload_replicas_ready:relabel',
+            expr: |||
+              label_replace(kube_deployment_status_replicas_ready{job="kube-state-metrics"},"workload", "$1", "deployment", "(.*)")
+            ||| % $._config,
+            labels: {
+              workload_type: 'deployment',
+            },
+          },
+          {
+            record: 'namespace_workload:workload_created:relabel',
+            expr: |||
+              label_replace(kube_statefulset_created{job="kube-state-metrics"},"workload", "$1", "statefulset", "(.*)")
+            ||| % $._config,
+            labels: {
+              workload_type: 'statefulset',
+            },
+          },
+          {
+            record: 'namespace_workload:workload_replicas:relabel',
+            expr: |||
+              label_replace(kube_statefulset_status_replicas{job="kube-state-metrics"},"workload", "$1", "statefulset", "(.*)")
+            ||| % $._config,
+            labels: {
+              workload_type: 'statefulset',
+            },
+          },
+          {
+            record: 'namespace_workload:workload_replicas_ready:relabel',
+            expr: |||
+              label_replace(kube_statefulset_status_replicas_ready{job="kube-state-metrics"},"workload", "$1", "statefulset", "(.*)")
+            ||| % $._config,
+            labels: {
+              workload_type: 'statefulset',
+            },
+          },
+          {
+            record: 'namespace_workload:workload_created:relabel',
+            expr: |||
+              label_replace(kube_daemonset_created{job="kube-state-metrics"},"workload", "$1", "daemonset", "(.*)")
+            ||| % $._config,
+            labels: {
+              workload_type: 'daemonset',
+            },
+          },
+          {
+            record: 'namespace_workload:workload_replicas:relabel',
+            expr: |||
+              label_replace(kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics"},"workload", "$1", "daemonset", "(.*)")
+            ||| % $._config,
+            labels: {
+              workload_type: 'daemonset',
+            },
+          },
+          {
+            record: 'namespace_workload:workload_replicas_ready:relabel',
+            expr: |||
+              label_replace(kube_daemonset_status_number_ready{job="kube-state-metrics"},"workload", "$1", "daemonset", "(.*)")
+            ||| % $._config,
+            labels: {
+              workload_type: 'daemonset',
+            },
+          },
         ]
       },
+      {
+        name: 'wiztelemetry-pod.rules',
+        rules: [
+          {
+            record: 'node_namespace_pod:container_network_receive_bytes_total:sum_irate',
+            expr: |||
+              sum by (cluster, namespace, pod) (
+                  irate(
+                    container_network_receive_bytes_total{image!="",job="kubelet",metrics_path="/metrics/cadvisor"}[5m]
+                  )
+                )
+              * on (cluster, namespace, pod) group_left (node)
+                topk by (cluster, namespace, pod) (
+                  1,
+                  max by (cluster, namespace, pod, node) (kube_pod_info{node!=""})
+                )
+            ||| % $._config,
+          },
+          {
+            record: 'node_namespace_pod:container_network_transmit_bytes_total:sum_irate',
+            expr: |||
+              sum by (cluster, namespace, pod) (
+                  irate(
+                    container_network_transmit_bytes_total{image!="",job="kubelet",metrics_path="/metrics/cadvisor"}[5m]
+                  )
+                )
+              * on (cluster, namespace, pod) group_left (node)
+                topk by (cluster, namespace, pod) (
+                  1,
+                  max by (cluster, namespace, pod, node) (kube_pod_info{node!=""})
+                )
+            ||| % $._config,
+          },
+        ]
+      },      
       {
         name: 'wiztelemetry-apiserver.rules',
         rules: [
