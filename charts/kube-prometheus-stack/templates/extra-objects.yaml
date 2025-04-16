@@ -1,37 +1,15 @@
-{{ range .Values.extraManifests }}
----
-{{ tpl (toYaml .) $ }}
-{{ end }}
+{{- /* Normalize extraObjects to a list, easier to loop over */ -}}
+{{- $extraObjects := .Values.extraManifests | default (list) -}}
 
+{{- if kindIs "map" $extraObjects -}}
+  {{- $extraObjects = values $extraObjects -}}
+{{- end -}}
+
+{{- range $extraObjects }}
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: prometheus-k8s
-  namespace: '{{ include "kube-prometheus-stack.namespace" . }}'
-  labels:
-    {{- if .Values.prometheus.agentMode }}
-    app.kubernetes.io/part-of: whizard
-    app.kubernetes.io/name: whizard-agent-proxy
-    {{- else }}
-    app.kubernetes.io/part-of: kube-prometheus-stack
-    {{- end }}
-    app.kubernetes.io/vendor: kubesphere
-spec:
-  ports:
-  - name: web
-    port: 9090
-    protocol: TCP
-    targetPort: 9090
-  selector:
-  {{- if .Values.prometheus.agentMode }}
-    app.kubernetes.io/name: whizard-agent-proxy
-  {{- else }}
-    app.kubernetes.io/name: prometheus
-    operator.prometheus.io/name: k8s
+  {{- if kindIs "map" . }}
+    {{- tpl (toYaml .) $ | nindent 0 }}
+  {{- else if kindIs "string" . }}
+    {{- tpl . $ | nindent 0 }}
   {{- end }}
-  sessionAffinity: ClientIP
-  sessionAffinityConfig:
-    clientIP:
-      timeoutSeconds: 10800
-  type: ClusterIP
+{{- end }}
