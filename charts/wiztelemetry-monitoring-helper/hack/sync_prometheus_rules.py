@@ -132,12 +132,13 @@ charts = [
 # Additional conditions map
 condition_map = {
     # wiztelemetry rules
-    'wiztelemetry-apiserver.rules': ' .Values.defaultRules.rules.wiztelemetry.apiserver',
     'wiztelemetry-cluster.rules': ' .Values.defaultRules.rules.wiztelemetry.cluster',
     'wiztelemetry-workload.rules': ' .Values.defaultRules.rules.wiztelemetry.workload',
     'wiztelemetry-pod.rules': ' .Values.defaultRules.rules.wiztelemetry.pod',
     'wiztelemetry-node.rules': ' .Values.defaultRules.rules.wiztelemetry.node',
+    'wiztelemetry-kubelet.rules': ' .Values.defaultRules.rules.wiztelemetry.kubelet',
     'wiztelemetry-etcd.rules': ' .Values.defaultRules.rules.wiztelemetry.etcd',
+    'wiztelemetry-apiserver.rules': ' .Values.defaultRules.rules.wiztelemetry.apiserver',
     'wiztelemetry-kube-scheduler.rules': ' .Values.defaultRules.rules.wiztelemetry.scheduler',
     'wiztelemetry-ascend-npu.rules': ' .Values.defaultRules.rules.gpuDevice.ascendNPU',
     'wiztelemetry-cambricon-mlu.rules': ' .Values.defaultRules.rules.gpuDevice.cambriconMLU',

@@ -1,1 +1,1 @@
-(import 'custom.libsonnet') + (import 'gpu.libsonnet')
+(import 'custom.libsonnet') + (import 'gpu.libsonnet') + (import 'kubelet.libsonnet')

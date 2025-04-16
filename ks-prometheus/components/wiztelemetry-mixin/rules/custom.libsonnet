@@ -536,7 +536,7 @@
           {
             record: 'namespace_workload:workload_replicas:relabel',
             expr: |||
-              label_replace(kube_deployment_status_replicas{job="kube-state-metrics"},"workload", "$1", "deployment", "(.*)")
+              label_replace(kube_deployment_spec_replicas{job="kube-state-metrics"},"workload", "$1", "deployment", "(.*)")
             ||| % $._config,
             labels: {
               workload_type: 'deployment',
@@ -563,7 +563,7 @@
           {
             record: 'namespace_workload:workload_replicas:relabel',
             expr: |||
-              label_replace(kube_statefulset_status_replicas{job="kube-state-metrics"},"workload", "$1", "statefulset", "(.*)")
+              label_replace(kube_statefulset_replicas{job="kube-state-metrics"},"workload", "$1", "statefulset", "(.*)")
             ||| % $._config,
             labels: {
               workload_type: 'statefulset',

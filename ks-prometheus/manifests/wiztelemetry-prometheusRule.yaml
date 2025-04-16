@@ -381,7 +381,7 @@ spec:
         workload_type: deployment
       record: namespace_workload:workload_created:relabel
     - expr: |
-        label_replace(kube_deployment_status_replicas{job="kube-state-metrics"},"workload", "$1", "deployment", "(.*)")
+        label_replace(kube_deployment_spec_replicas{job="kube-state-metrics"},"workload", "$1", "deployment", "(.*)")
       labels:
         workload_type: deployment
       record: namespace_workload:workload_replicas:relabel
@@ -396,7 +396,7 @@ spec:
         workload_type: statefulset
       record: namespace_workload:workload_created:relabel
     - expr: |
-        label_replace(kube_statefulset_status_replicas{job="kube-state-metrics"},"workload", "$1", "statefulset", "(.*)")
+        label_replace(kube_statefulset_replicas{job="kube-state-metrics"},"workload", "$1", "statefulset", "(.*)")
       labels:
         workload_type: statefulset
       record: namespace_workload:workload_replicas:relabel
@@ -960,3 +960,20 @@ spec:
             kube_node_status_allocatable{job="kube-state-metrics",resource="huawei_com_Ascend910"}
         )
       record: node:node_gpu_num:sum
+  - name: wiztelemetry-kubelet.rules
+    rules:
+    - expr: |
+        histogram_quantile(0.99, sum by (cluster, instance, le)(rate(kubelet_pod_worker_duration_seconds_bucket{job="kubelet"}[5m])) * on(cluster, instance) group_left(node) kubelet_node_name{job="kubelet"})
+      labels:
+        quantile: "0.99"
+      record: node_quantile:kubelet_pod_worker_duration_seconds:histogram_quantile
+    - expr: |
+        histogram_quantile(0.99, sum by (cluster, instance, operation_type, le)(rate(kubelet_runtime_operations_duration_seconds_bucket{job="kubelet"}[5m])) * on(cluster, instance) group_left(node) kubelet_node_name{job="kubelet"})
+      labels:
+        quantile: "0.99"
+      record: node_quantile:kubelet_runtime_operations_duration_seconds:histogram_quantile
+    - expr: |
+        histogram_quantile(0.99, sum by (cluster, instance, operation_name, volume_plugin, le)(rate(storage_operation_duration_seconds_bucket{job="kubelet"}[5m])) * on(cluster, instance) group_left(node) kubelet_node_name{job="kubelet"})
+      labels:
+        quantile: "0.99"
+      record: node_quantile:storage_operation_duration_seconds:histogram_quantile

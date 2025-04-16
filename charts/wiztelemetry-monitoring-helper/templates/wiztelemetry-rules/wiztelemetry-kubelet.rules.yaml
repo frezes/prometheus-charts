@@ -1,0 +1,63 @@
+{{- /*
+Generated from 'wiztelemetry-kubelet.rules' group from file://../../../ks-prometheus/manifests/wiztelemetry-prometheusRule.yaml
+Do not change in-place! In order to change this file first read following link:
+https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack/hack
+*/ -}}
+{{- $kubeTargetVersion := default .Capabilities.KubeVersion.GitVersion .Values.kubeTargetVersionOverride }}
+{{- if and (semverCompare ">=1.14.0-0" $kubeTargetVersion) (semverCompare "<9.9.9-9" $kubeTargetVersion) .Values.defaultRules.create .Values.defaultRules.rules.wiztelemetry.kubelet }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ printf "%s-%s" (include "wiztelemetry-monitoring-helper.fullname" .) "wiztelemetry-kubelet.rules" | trunc 63 | trimSuffix "-" }}
+  namespace: {{ template "wiztelemetry-monitoring-helper.namespace" . }}
+  labels:
+    app: {{ template "wiztelemetry-monitoring-helper.name" . }}
+{{ include "wiztelemetry-monitoring-helper.labels" . | indent 4 }}
+{{- if .Values.defaultRules.labels }}
+{{ toYaml .Values.defaultRules.labels | indent 4 }}
+{{- end }}
+{{- if .Values.defaultRules.annotations }}
+  annotations:
+{{ toYaml .Values.defaultRules.annotations | indent 4 }}
+{{- end }}
+spec:
+  groups:
+  - name: wiztelemetry-kubelet.rules
+    rules:
+    - expr: histogram_quantile(0.99, sum by ({{ range $.Values.defaultRules.additionalAggregationLabels }}{{ . }},{{ end }}cluster, instance, le)(rate(kubelet_pod_worker_duration_seconds_bucket{job="kubelet"}[5m])) * on ({{ range $.Values.defaultRules.additionalAggregationLabels }}{{ . }},{{ end }}cluster, instance) group_left(node) kubelet_node_name{job="kubelet"})
+      labels:
+        quantile: '0.99'
+      {{- if or .Values.defaultRules.additionalRuleLabels .Values.defaultRules.additionalRuleGroupLabels.wiztelemetry.kubelet }}
+        {{- with .Values.defaultRules.additionalRuleLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.defaultRules.additionalRuleGroupLabels.wiztelemetry.kubelet }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      record: node_quantile:kubelet_pod_worker_duration_seconds:histogram_quantile
+    - expr: histogram_quantile(0.99, sum by ({{ range $.Values.defaultRules.additionalAggregationLabels }}{{ . }},{{ end }}cluster, instance, operation_type, le)(rate(kubelet_runtime_operations_duration_seconds_bucket{job="kubelet"}[5m])) * on ({{ range $.Values.defaultRules.additionalAggregationLabels }}{{ . }},{{ end }}cluster, instance) group_left(node) kubelet_node_name{job="kubelet"})
+      labels:
+        quantile: '0.99'
+      {{- if or .Values.defaultRules.additionalRuleLabels .Values.defaultRules.additionalRuleGroupLabels.wiztelemetry.kubelet }}
+        {{- with .Values.defaultRules.additionalRuleLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.defaultRules.additionalRuleGroupLabels.wiztelemetry.kubelet }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      record: node_quantile:kubelet_runtime_operations_duration_seconds:histogram_quantile
+    - expr: histogram_quantile(0.99, sum by ({{ range $.Values.defaultRules.additionalAggregationLabels }}{{ . }},{{ end }}cluster, instance, operation_name, volume_plugin, le)(rate(storage_operation_duration_seconds_bucket{job="kubelet"}[5m])) * on ({{ range $.Values.defaultRules.additionalAggregationLabels }}{{ . }},{{ end }}cluster, instance) group_left(node) kubelet_node_name{job="kubelet"})
+      labels:
+        quantile: '0.99'
+      {{- if or .Values.defaultRules.additionalRuleLabels .Values.defaultRules.additionalRuleGroupLabels.wiztelemetry.kubelet }}
+        {{- with .Values.defaultRules.additionalRuleLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.defaultRules.additionalRuleGroupLabels.wiztelemetry.kubelet }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      record: node_quantile:storage_operation_duration_seconds:histogram_quantile
+{{- end }}

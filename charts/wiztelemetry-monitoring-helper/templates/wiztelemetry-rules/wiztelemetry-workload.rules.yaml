@@ -162,7 +162,7 @@ spec:
         {{- end }}
       {{- end }}
       record: namespace_workload:workload_created:relabel
-    - expr: label_replace(kube_deployment_status_replicas{job="kube-state-metrics"},"workload", "$1", "deployment", "(.*)")
+    - expr: label_replace(kube_deployment_spec_replicas{job="kube-state-metrics"},"workload", "$1", "deployment", "(.*)")
       labels:
         workload_type: deployment
       {{- if or .Values.defaultRules.additionalRuleLabels .Values.defaultRules.additionalRuleGroupLabels.wiztelemetry.workload }}
@@ -198,7 +198,7 @@ spec:
         {{- end }}
       {{- end }}
       record: namespace_workload:workload_created:relabel
-    - expr: label_replace(kube_statefulset_status_replicas{job="kube-state-metrics"},"workload", "$1", "statefulset", "(.*)")
+    - expr: label_replace(kube_statefulset_replicas{job="kube-state-metrics"},"workload", "$1", "statefulset", "(.*)")
       labels:
         workload_type: statefulset
       {{- if or .Values.defaultRules.additionalRuleLabels .Values.defaultRules.additionalRuleGroupLabels.wiztelemetry.workload }}
