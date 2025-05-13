@@ -59,6 +59,9 @@ defaultRules:
       node: true
       etcd: true
       scheduler: true
+      workload: true
+      pod: true
+      kubelet: true
     gpuDevice:
       ascendNPU: true
       cambriconMLU: true
