@@ -2726,7 +2726,7 @@ kube-state-metrics:
     - kube_job_(info|owner|spec_(parallelism|active_deadline_seconds)|status_.+_time)
     - kube_cronjob_(info|status_.+|spec_.+)
     - kube_persistentvolume_(info|capacity_.+)
-    - kube_persistentvolumeclaim_(resource_.+|access_.+)
+    - kube_persistentvolumeclaim_access_.+
     - kube_secret_(type)
     - kube_ingress_(info|path|tls)
     - kube_replicaset_(status_.+|spec_.+)
