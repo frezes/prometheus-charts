@@ -426,7 +426,7 @@
             record: 'node:gpu_device:gpu_memory_used_bytes',
             expr: |||
                 label_replace(
-                  label_replace(npu_chip_info_hbm_used_memory{%(ascendNPUMonitoringSelector)s}, "device_num", "npu${1}", "id", "(.*)") * 1024 * 1024,
+                  label_replace(npu_chip_info_used_memory{%(ascendNPUMonitoringSelector)s}, "device_num", "npu${1}", "id", "(.*)") * 1024 * 1024,
                   "device_name",
                   "$1",
                   "model_name",
@@ -438,7 +438,7 @@
             record: 'node:gpu_device:gpu_memory_total_bytes',
             expr: |||
                 label_replace(
-                  label_replace(npu_chip_info_hbm_total_memory{%(ascendNPUMonitoringSelector)s}, "device_num", "npu${1}", "id", "(.*)") * 1024 * 1024,
+                  label_replace(npu_chip_info_total_memory{%(ascendNPUMonitoringSelector)s}, "device_num", "npu${1}", "id", "(.*)") * 1024 * 1024,
                   "device_name",
                   "$1",
                   "model_name",
@@ -451,7 +451,7 @@
             expr: |||
                 label_replace(
                   label_replace(
-                    npu_chip_info_hbm_used_memory{%(ascendNPUMonitoringSelector)s} / npu_chip_info_hbm_total_memory{%(ascendNPUMonitoringSelector)s},
+                    npu_chip_info_used_memory{%(ascendNPUMonitoringSelector)s} / npu_chip_info_total_memory{%(ascendNPUMonitoringSelector)s},
                     "device_num",
                     "npu${1}",
                     "id",
@@ -480,7 +480,7 @@
             record: 'node:node_gpu_allocated_num:sum',
             expr: |||
               sum by (%(clusterLabel)s, node) (
-                kube_pod_container_resource_requests{%(kubeStateMetricsSelector)s,resource="huawei_com_Ascend910"}
+                kube_pod_container_resource_requests{%(kubeStateMetricsSelector)s,resource=~"huawei_com_Ascend(.*)"}
               )
             ||| % $._config,
           },
@@ -488,7 +488,7 @@
             record: 'node:node_gpu_num:sum',
             expr: |||
               sum by(%(clusterLabel)s, node) (
-                  kube_node_status_allocatable{%(kubeStateMetricsSelector)s,resource="huawei_com_Ascend910"}
+                  kube_node_status_allocatable{%(kubeStateMetricsSelector)s,resource=~"huawei_com_Ascend(.*)"}
               )
             ||| % $._config,
           },

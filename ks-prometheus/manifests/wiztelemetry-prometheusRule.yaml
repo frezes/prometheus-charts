@@ -910,7 +910,7 @@ spec:
       record: node:gpu_device:gpu_power_usage
     - expr: |
         label_replace(
-          label_replace(npu_chip_info_hbm_used_memory{job="npu-exporter"}, "device_num", "npu${1}", "id", "(.*)") * 1024 * 1024,
+          label_replace(npu_chip_info_used_memory{job="npu-exporter"}, "device_num", "npu${1}", "id", "(.*)") * 1024 * 1024,
           "device_name",
           "$1",
           "model_name",
@@ -919,7 +919,7 @@ spec:
       record: node:gpu_device:gpu_memory_used_bytes
     - expr: |
         label_replace(
-          label_replace(npu_chip_info_hbm_total_memory{job="npu-exporter"}, "device_num", "npu${1}", "id", "(.*)") * 1024 * 1024,
+          label_replace(npu_chip_info_total_memory{job="npu-exporter"}, "device_num", "npu${1}", "id", "(.*)") * 1024 * 1024,
           "device_name",
           "$1",
           "model_name",
@@ -929,7 +929,7 @@ spec:
     - expr: |
         label_replace(
           label_replace(
-            npu_chip_info_hbm_used_memory{job="npu-exporter"} / npu_chip_info_hbm_total_memory{job="npu-exporter"},
+            npu_chip_info_used_memory{job="npu-exporter"} / npu_chip_info_total_memory{job="npu-exporter"},
             "device_num",
             "npu${1}",
             "id",
@@ -952,12 +952,12 @@ spec:
       record: node:gpu_device:gpu_utilization
     - expr: |
         sum by (cluster, node) (
-          kube_pod_container_resource_requests{job="kube-state-metrics",resource="huawei_com_Ascend910"}
+          kube_pod_container_resource_requests{job="kube-state-metrics",resource=~"huawei_com_Ascend(.*)"}
         )
       record: node:node_gpu_allocated_num:sum
     - expr: |
         sum by(cluster, node) (
-            kube_node_status_allocatable{job="kube-state-metrics",resource="huawei_com_Ascend910"}
+            kube_node_status_allocatable{job="kube-state-metrics",resource=~"huawei_com_Ascend(.*)"}
         )
       record: node:node_gpu_num:sum
   - name: wiztelemetry-kubelet.rules
