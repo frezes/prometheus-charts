@@ -14,14 +14,18 @@ spec:
     rules:
     - expr: |
         max by (cluster, node, ip, workspace, namespace, pod, qos_class, phase, workload, workload_type) (
-                  kube_pod_info{job="kube-state-metrics"}
-                * on (cluster, namespace, pod) group_left (qos_class)
-                  max by (cluster, namespace, pod, qos_class) (
-                    kube_pod_status_qos_class{job="kube-state-metrics"} > 0
-                  )
+                    kube_pod_info{job="kube-state-metrics"}
+                  * on (cluster, namespace, pod) group_left (qos_class)
+                    max by (cluster, namespace, pod, qos_class) (
+                      kube_pod_status_qos_class{job="kube-state-metrics"} > 0
+                    )
                 * on (cluster, namespace, pod) group_left (ip)
                   max by (cluster, namespace, pod, ip) (
-                    kube_pod_ips{job="kube-state-metrics"} > 0
+                      kube_pod_ips{job="kube-state-metrics"}
+                    or
+                        sum by (pod, namespace, cluster) (kube_pod_info{job="kube-state-metrics"})
+                      unless
+                        sum by (pod, namespace, cluster) (kube_pod_ips{job="kube-state-metrics"})
                   )
               * on (cluster, namespace, pod) group_left (phase)
                 max by (cluster, namespace, pod, phase) (kube_pod_status_phase{job="kube-state-metrics"} > 0)

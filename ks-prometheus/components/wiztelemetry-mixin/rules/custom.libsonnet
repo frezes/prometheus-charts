@@ -26,14 +26,18 @@
             record: 'workspace_workload_node:kube_pod_info:',
             expr: |||
               max by (%(clusterLabel)s, node, ip, workspace, namespace, pod, qos_class, phase, workload, workload_type) (
-                        kube_pod_info{%(kubeStateMetricsSelector)s}
-                      * on (%(clusterLabel)s, namespace, pod) group_left (qos_class)
-                        max by (%(clusterLabel)s, namespace, pod, qos_class) (
-                          kube_pod_status_qos_class{%(kubeStateMetricsSelector)s} > 0
-                        )
+                          kube_pod_info{%(kubeStateMetricsSelector)s}
+                        * on (%(clusterLabel)s, namespace, pod) group_left (qos_class)
+                          max by (%(clusterLabel)s, namespace, pod, qos_class) (
+                            kube_pod_status_qos_class{%(kubeStateMetricsSelector)s} > 0
+                          )
                       * on (%(clusterLabel)s, namespace, pod) group_left (ip)
                         max by (%(clusterLabel)s, namespace, pod, ip) (
-                          kube_pod_ips{%(kubeStateMetricsSelector)s} > 0
+                            kube_pod_ips{%(kubeStateMetricsSelector)s}
+                          or
+                              sum by (pod, namespace, cluster) (kube_pod_info{%(kubeStateMetricsSelector)s})
+                            unless
+                              sum by (pod, namespace, cluster) (kube_pod_ips{%(kubeStateMetricsSelector)s})
                         )
                     * on (%(clusterLabel)s, namespace, pod) group_left (phase)
                       max by (%(clusterLabel)s, namespace, pod, phase) (kube_pod_status_phase{%(kubeStateMetricsSelector)s} > 0)
