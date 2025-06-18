@@ -1674,7 +1674,7 @@ kubelet:
     ## Configure the scrape interval for cAdvisor. This is configured to the default Kubelet cAdvisor
     ## minimum housekeeping interval in order to avoid missing samples. Note, this value is ignored
     ## if kubelet.serviceMonitor.interval is not empty.
-    cAdvisorInterval: 10s
+    cAdvisorInterval: 1m
     ## MetricRelabelConfigs to apply to samples after scraping, but before ingestion.
     ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#relabelconfig
     ##
