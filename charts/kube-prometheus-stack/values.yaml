@@ -1844,7 +1844,7 @@ kubelet:
         sourceLabels:
         - __name__
       - action: keep
-        regex: kubelet_node_name|kubelet_running_container_count|kubelet_running_pod_count|kubelet_volume_stats.*|kubelet_pleg_relist_duration_seconds_.+|kubelet_certificate_manager_.+|kubelet_server_expiration_.+|kubelet_pod_worker_.+|kubelet_runtime_operations_.+|storage_operation_.+
+        regex: kubelet_node_name|kubelet_running_containers|kubelet_running_pods|kubelet_volume_stats.*|kubelet_pleg_relist_duration_seconds_.+|kubelet_certificate_manager_.+|kubelet_server_expiration_.+|kubelet_pod_worker_.+|kubelet_runtime_operations_.+|storage_operation_.+|kubelet_evictions
         sourceLabels:
           - __name__
     # - sourceLabels: [__name__, image]
@@ -2726,7 +2726,6 @@ kube-state-metrics:
     - kube_job_(info|owner|spec_(parallelism|active_deadline_seconds)|status_.+_time)
     - kube_cronjob_(info|status_.+|spec_.+)
     - kube_persistentvolume_(info|capacity_.+)
-    - kube_persistentvolumeclaim_access_.+
     - kube_secret_(type)
     - kube_ingress_(info|path|tls)
     - kube_replicaset_(status_.+|spec_.+)
@@ -2737,6 +2736,7 @@ kube-state-metrics:
   metricLabelsAllowlist:
     - 'namespaces=[kubesphere.io/workspace]'
     - 'storageclasses=[storage.kubesphere.io/storagetype]'
+    - 'persistentvolumeclaims=[excluded-from-alerts]'
   metricAnnotationsAllowList:
     - 'namespaces=[kubesphere.io/alias-name]'
 
