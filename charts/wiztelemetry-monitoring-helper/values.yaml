@@ -66,6 +66,7 @@ defaultRules:
       ascendNPU: true
       cambriconMLU: true
       nvidiaGPU: true
+      hami: true
 
   additionalRuleGroupLabels:
     wiztelemetry:
@@ -79,6 +80,7 @@ defaultRules:
       ascendNPU: {}
       cambriconMLU: {}
       nvidiaGPU: {}
+      hami: {}
 
   ## Additional labels for PrometheusRule alerts
   additionalRuleLabels: {}
