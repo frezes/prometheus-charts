@@ -1002,7 +1002,7 @@ spec:
       record: node_namespace_pod_container:container_gpu_memory_usage
     - expr: |
         label_replace(
-          label_replace(GPUDeviceSharedNum / GPUDeviceCoreLimit * 100, "node", "$1", "nodeid", "(.*)"),
+          label_replace(GPUDeviceSharedNum / GPUDeviceCoreLimit, "node", "$1", "nodeid", "(.*)"),
           "device_num",
           "$1",
           "deviceidx",
@@ -1035,12 +1035,12 @@ spec:
       record: node:vgpu_device:vgpu_memory_allocated_utilization
     - expr: |
         sum by (cluster, node) (
-          kube_pod_container_resource_requests{job="kube-state-metrics",resource=~"nvidia_com_vgpu"}
+          kube_pod_container_resource_requests{job="kube-state-metrics",resource=~"nvidia_com_vgpu|qingcloud_nvidia_com_vgpu"}
         )
       record: node:node_gpu_allocated_num:sum
     - expr: |
         sum by(cluster, node) (
-            kube_node_status_allocatable{job="kube-state-metrics",resource=~"nvidia_com_vgpu"}
+            kube_node_status_allocatable{job="kube-state-metrics",resource=~"nvidia_com_vgpu|qingcloud_nvidia_com_vgpu"}
         )
       record: node:node_gpu_num:sum
   - name: wiztelemetry-kubelet.rules

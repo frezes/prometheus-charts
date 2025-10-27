@@ -541,7 +541,7 @@
             record: 'node:vgpu_device:vgpu_allocated_utilization',
             expr: |||
               label_replace(
-                label_replace(GPUDeviceSharedNum / GPUDeviceCoreLimit * 100, "node", "$1", "nodeid", "(.*)"),
+                label_replace(GPUDeviceSharedNum / GPUDeviceCoreLimit, "node", "$1", "nodeid", "(.*)"),
                 "device_num",
                 "$1",
                 "deviceidx",
@@ -583,7 +583,7 @@
             record: 'node:node_gpu_allocated_num:sum',
             expr: |||
               sum by (%(clusterLabel)s, node) (
-                kube_pod_container_resource_requests{%(kubeStateMetricsSelector)s,resource=~"nvidia_com_vgpu"}
+                kube_pod_container_resource_requests{%(kubeStateMetricsSelector)s,resource=~"nvidia_com_vgpu|qingcloud_nvidia_com_vgpu"}
               )
             ||| % $._config,
           },
@@ -591,7 +591,7 @@
             record: 'node:node_gpu_num:sum',
             expr: |||
               sum by(%(clusterLabel)s, node) (
-                  kube_node_status_allocatable{%(kubeStateMetricsSelector)s,resource=~"nvidia_com_vgpu"}
+                  kube_node_status_allocatable{%(kubeStateMetricsSelector)s,resource=~"nvidia_com_vgpu|qingcloud_nvidia_com_vgpu"}
               )
             ||| % $._config,
           },
