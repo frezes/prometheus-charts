@@ -541,7 +541,7 @@
             record: 'node:vgpu_device:vgpu_allocated_utilization',
             expr: |||
               label_replace(
-                label_replace(GPUDeviceSharedNum / GPUDeviceCoreLimit, "node", "$1", "nodeid", "(.*)"),
+                label_replace(GPUDeviceSharedNum / 10, "node", "$1", "nodeid", "(.*)"),
                 "device_num",
                 "$1",
                 "deviceidx",
