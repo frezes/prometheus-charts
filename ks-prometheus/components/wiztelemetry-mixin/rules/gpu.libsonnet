@@ -503,7 +503,7 @@
                 sum by (%(clusterLabel)s, node, namespace, pod, container) (
                   label_replace(
                     label_replace(
-                      label_replace(Device_utilization_desc_of_container, "namespace", "$1", "podnamespace", "(.*)"),
+                      label_replace(Device_utilization_desc_of_container/100, "namespace", "$1", "podnamespace", "(.*)"),
                       "pod",
                       "$1",
                       "podname",
@@ -583,7 +583,7 @@
             record: 'node:node_gpu_allocated_num:sum',
             expr: |||
               sum by (%(clusterLabel)s, node) (
-                kube_pod_container_resource_requests{%(kubeStateMetricsSelector)s,resource=~"nvidia_com_vgpu|qingcloud_nvidia_com_vgpu"}
+                kube_pod_container_resource_requests{%(kubeStateMetricsSelector)s,resource=~"nvidia_com_vgpu|qingcloud_nvidia_com_vgpu|volcano_sh_vgpu_number"}
               )
             ||| % $._config,
           },
@@ -591,7 +591,7 @@
             record: 'node:node_gpu_num:sum',
             expr: |||
               sum by(%(clusterLabel)s, node) (
-                  kube_node_status_allocatable{%(kubeStateMetricsSelector)s,resource=~"nvidia_com_vgpu|qingcloud_nvidia_com_vgpu"}
+                  kube_node_status_allocatable{%(kubeStateMetricsSelector)s,resource=~"nvidia_com_vgpu|qingcloud_nvidia_com_vgpu|volcano_sh_vgpu_number"} / 10
               )
             ||| % $._config,
           },

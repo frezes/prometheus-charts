@@ -28,7 +28,7 @@ spec:
         sum by ({{ range $.Values.defaultRules.additionalAggregationLabels }}{{ . }},{{ end }}cluster, node, namespace, pod, container) (
           label_replace(
             label_replace(
-              label_replace(Device_utilization_desc_of_container, "namespace", "$1", "podnamespace", "(.*)"),
+              label_replace(Device_utilization_desc_of_container/100, "namespace", "$1", "podnamespace", "(.*)"),
               "pod",
               "$1",
               "podname",
@@ -138,7 +138,7 @@ spec:
       {{- end }}
     - expr: |-
         sum by ({{ range $.Values.defaultRules.additionalAggregationLabels }}{{ . }},{{ end }}cluster, node) (
-          kube_pod_container_resource_requests{job="kube-state-metrics",resource=~"nvidia_com_vgpu|qingcloud_nvidia_com_vgpu"}
+          kube_pod_container_resource_requests{job="kube-state-metrics",resource=~"nvidia_com_vgpu|qingcloud_nvidia_com_vgpu|volcano_sh_vgpu_number"}
         )
       record: node:node_gpu_allocated_num:sum
       {{- if or .Values.defaultRules.additionalRuleLabels .Values.defaultRules.additionalRuleGroupLabels.gpuDevice.hami }}
@@ -152,7 +152,7 @@ spec:
       {{- end }}
     - expr: |-
         sum by ({{ range $.Values.defaultRules.additionalAggregationLabels }}{{ . }},{{ end }}cluster, node) (
-            kube_node_status_allocatable{job="kube-state-metrics",resource=~"nvidia_com_vgpu|qingcloud_nvidia_com_vgpu"}
+            kube_node_status_allocatable{job="kube-state-metrics",resource=~"nvidia_com_vgpu|qingcloud_nvidia_com_vgpu|volcano_sh_vgpu_number"} / 10
         )
       record: node:node_gpu_num:sum
       {{- if or .Values.defaultRules.additionalRuleLabels .Values.defaultRules.additionalRuleGroupLabels.gpuDevice.hami }}
