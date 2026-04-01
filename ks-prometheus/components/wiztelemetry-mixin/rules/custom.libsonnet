@@ -25,16 +25,16 @@
             // must kms version > 2.8.0
             record: 'workspace_workload_node:kube_pod_info:',
             expr: |||
-              max by (cluster, node, ip, workspace, namespace, pod, qos_class, phase, workload, workload_type) (
+              max by (%(clusterLabel)s, node, ip, workspace, namespace, pod, qos_class, phase, workload, workload_type) (
                         label_join(kube_pod_info{%(kubeStateMetricsSelector)s}, "ip", "$1", "pod_ip")
-                      * on (cluster, namespace, pod) group_left (qos_class)
-                        max by (cluster, namespace, pod, qos_class) (
+                      * on (%(clusterLabel)s, namespace, pod) group_left (qos_class)
+                        max by (%(clusterLabel)s, namespace, pod, qos_class) (
                           kube_pod_status_qos_class{%(kubeStateMetricsSelector)s} > 0
                         )
-                    * on (cluster, namespace, pod) group_left (phase)
-                      max by (cluster, namespace, pod, phase) (kube_pod_status_phase{%(kubeStateMetricsSelector)s} > 0)
-                  * on (cluster, namespace, pod) group_left (workload, workload_type)
-                    max by (cluster, namespace, pod, workload, workload_type) (
+                    * on (%(clusterLabel)s, namespace, pod) group_left (phase)
+                      max by (%(clusterLabel)s, namespace, pod, phase) (kube_pod_status_phase{%(kubeStateMetricsSelector)s} > 0)
+                  * on (%(clusterLabel)s, namespace, pod) group_left (workload, workload_type)
+                    max by (%(clusterLabel)s, namespace, pod, workload, workload_type) (
                         label_join(
                           label_join(
                             kube_pod_owner{%(kubeStateMetricsSelector)s,owner_kind!~"ReplicaSet|DaemonSet|StatefulSet|Job"},
@@ -48,11 +48,11 @@
                         )
                       or
                           kube_pod_owner{%(kubeStateMetricsSelector)s,owner_kind=~"ReplicaSet|DaemonSet|StatefulSet|Job"}
-                        * on (cluster, namespace, pod) group_left (workload_type, workload)
+                        * on (%(clusterLabel)s, namespace, pod) group_left (workload_type, workload)
                           namespace_workload_pod:kube_pod_owner:relabel
                     )
-                * on (cluster, namespace) group_left (workspace)
-                  max by (cluster, namespace, workspace) (kube_namespace_labels{%(kubeStateMetricsSelector)s})
+                * on (%(clusterLabel)s, namespace) group_left (workspace)
+                  max by (%(clusterLabel)s, namespace, workspace) (kube_namespace_labels{%(kubeStateMetricsSelector)s})
               )
             ||| % $._config
           },
@@ -62,8 +62,7 @@
             //
             record: 'node_role_ip:kube_node_info:',
             expr: |||
-              label_replace(
-                max by (%(clusterLabel)s, node, role, internal_ip) (
+                max by (%(clusterLabel)s, node, role) (
                       kube_node_info{%(kubeStateMetricsSelector)s}
                     * on (%(clusterLabel)s, node) group_left (role)
                       max by (%(clusterLabel)s, node, role) (
@@ -92,24 +91,21 @@
                       kube_node_info{%(kubeStateMetricsSelector)s}
                     unless on (%(clusterLabel)s, node)
                       kube_node_role{%(kubeStateMetricsSelector)s}
-                ),
-                "host_ip",
-                "$1",
-                "internal_ip",
-                "(.*)"
-              )
+                )
+                * on (%(clusterLabel)s, node) group_left (host_ip)
+                  max by (%(clusterLabel)s, node, host_ip) (kube_pod_info{%(kubeStateMetricsSelector)s})
             ||| % $._config
           },
           {
             //
             record: 'pod_start_time:kube_pod_info:',
             expr: |||
-              max by (cluster, namespace, pod, pod_ip, host_ip, node) (
+              max by (%(clusterLabel)s, namespace, pod, pod_ip, host_ip, node) (
                     kube_pod_info{%(kubeStateMetricsSelector)s}
-                  * on (cluster, namespace, pod, uid) group_left ()
+                  * on (%(clusterLabel)s, namespace, pod, uid) group_left ()
                     kube_pod_start_time{%(kubeStateMetricsSelector)s}
                 )
-              * on (cluster, namespace, pod) group_left (workspace, qos_class, phase)
+              * on (%(clusterLabel)s, namespace, pod) group_left (workspace, qos_class, phase)
                 workspace_workload_node:kube_pod_info:
             ||| % $._config
           },
@@ -609,30 +605,30 @@
           {
             record: 'node_namespace_pod:container_network_receive_bytes_total:sum_irate',
             expr: |||
-              sum by (cluster, namespace, pod) (
+              sum by (%(clusterLabel)s, namespace, pod) (
                   irate(
                     container_network_receive_bytes_total{image!="",job="kubelet",metrics_path="/metrics/cadvisor"}[5m]
                   )
                 )
-              * on (cluster, namespace, pod) group_left (node)
-                topk by (cluster, namespace, pod) (
+              * on (%(clusterLabel)s, namespace, pod) group_left (node)
+                topk by (%(clusterLabel)s, namespace, pod) (
                   1,
-                  max by (cluster, namespace, pod, node) (kube_pod_info{node!=""})
+                  max by (%(clusterLabel)s, namespace, pod, node) (kube_pod_info{node!=""})
                 )
             ||| % $._config,
           },
           {
             record: 'node_namespace_pod:container_network_transmit_bytes_total:sum_irate',
             expr: |||
-              sum by (cluster, namespace, pod) (
+              sum by (%(clusterLabel)s, namespace, pod) (
                   irate(
                     container_network_transmit_bytes_total{image!="",job="kubelet",metrics_path="/metrics/cadvisor"}[5m]
                   )
                 )
-              * on (cluster, namespace, pod) group_left (node)
-                topk by (cluster, namespace, pod) (
+              * on (%(clusterLabel)s, namespace, pod) group_left (node)
+                topk by (%(clusterLabel)s, namespace, pod) (
                   1,
-                  max by (cluster, namespace, pod, node) (kube_pod_info{node!=""})
+                  max by (%(clusterLabel)s, namespace, pod, node) (kube_pod_info{node!=""})
                 )
             ||| % $._config,
           },
