@@ -44,42 +44,38 @@ spec:
         )
       record: 'workspace_workload_node:kube_pod_info:'
     - expr: |
-        label_replace(
-          max by (cluster, node, role, internal_ip) (
-                kube_node_info{job="kube-state-metrics"}
-              * on (cluster, node) group_left (role)
-                max by (cluster, node, role) (
-                        (
-                            kube_node_role{job="kube-state-metrics",role="worker"}
-                          unless ignoring (role)
-                            kube_node_role{job="kube-state-metrics",role=~"control-plane|edge"}
-                        )
-                      or
-                        (
-                            kube_node_role{job="kube-state-metrics",role="control-plane"}
-                          unless ignoring (role)
-                            kube_node_role{job="kube-state-metrics",role="edge"}
-                        )
+        max by (cluster, node, role) (
+              kube_node_info{job="kube-state-metrics"}
+            * on (cluster, node) group_left (role)
+              max by (cluster, node, role) (
+                      (
+                          kube_node_role{job="kube-state-metrics",role="worker"}
+                        unless ignoring (role)
+                          kube_node_role{job="kube-state-metrics",role=~"control-plane|edge"}
+                      )
                     or
-                      kube_node_role{job="kube-state-metrics",role="edge"}
+                      (
+                          kube_node_role{job="kube-state-metrics",role="control-plane"}
+                        unless ignoring (role)
+                          kube_node_role{job="kube-state-metrics",role="edge"}
+                      )
                   or
-                    topk by (cluster, node) (
-                      1,
-                        kube_node_role{job="kube-state-metrics"}
-                      unless ignoring (role)
-                        (kube_node_role{job="kube-state-metrics",role=~"edge|control-plane|worker|fakenode"})
-                    )
-                )
-            or
-                kube_node_info{job="kube-state-metrics"}
-              unless on (cluster, node)
-                kube_node_role{job="kube-state-metrics"}
-          ),
-          "host_ip",
-          "$1",
-          "internal_ip",
-          "(.*)"
+                    kube_node_role{job="kube-state-metrics",role="edge"}
+                or
+                  topk by (cluster, node) (
+                    1,
+                      kube_node_role{job="kube-state-metrics"}
+                    unless ignoring (role)
+                      (kube_node_role{job="kube-state-metrics",role=~"edge|control-plane|worker|fakenode"})
+                  )
+              )
+          or
+              kube_node_info{job="kube-state-metrics"}
+            unless on (cluster, node)
+              kube_node_role{job="kube-state-metrics"}
         )
+        * on (cluster, node) group_left (host_ip)
+          max by (cluster, node, host_ip) (kube_pod_info{job="kube-state-metrics"})
       record: 'node_role_ip:kube_node_info:'
     - expr: |
         max by (cluster, namespace, pod, pod_ip, host_ip, node) (
